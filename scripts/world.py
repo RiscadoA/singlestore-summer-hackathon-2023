@@ -3,10 +3,12 @@ import numpy as np
 from tiles import Tileset, Tilemap
 from animation import Animation
 from character import Character
+from text import Font
 
 OVERWORLD_TILES_PATH = "assets/tiles/overworld.png"
 CHARACTER_PATH = "assets/character.png"
 WALK_ANIMATION_PATH = "assets/animations/walk.json"
+FONT_PATH = "assets/font/data.json"
 
 class World:
     def __init__(self):
@@ -25,6 +27,8 @@ class World:
             self.character.push_path((i * 16, (i + 1) * 16))
             self.character.push_path(((i + 1) * 16, (i + 1) * 16))
 
+        self.font = Font(FONT_PATH)
+
     def run(self):
         running = True
         lastT = pygame.time.get_ticks()
@@ -41,6 +45,7 @@ class World:
 
             self.screen.blit(self.tilemap.image, (0, 0), self.tilemap.rect)
             self.character.render(self.screen)
+            self.font.render(self.screen, (self.character.position[0], self.character.position[1] - 50), "Hey, whats up!\nHow are you doing? :D 123 Lines also break automatically wooooooo")
             pygame.display.flip()
 
         pygame.quit()
