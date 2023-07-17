@@ -9,13 +9,13 @@ class Tileset(list):
         self.margin = margin
         self.spacing = spacing
 
-        self.image = pygame.image.load(path)
+        self.image = pygame.image.load(path).convert_alpha()
         self.rect = self.image.get_rect()
 
         # Extract tiles from the tileset and store them to self (which is a list)
         for y in range(self.margin, self.rect.size[1], self.size[1] + self.spacing):
             for x in range(self.margin, self.rect.size[0], self.size[0] + self.spacing):
-                tile = pygame.Surface(self.size)
+                tile = pygame.Surface(self.size, pygame.SRCALPHA)
                 tile.blit(self.image, (0, 0), (x, y, *self.size))
                 self.append(tile)
 
