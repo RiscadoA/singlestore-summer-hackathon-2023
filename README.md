@@ -9,3 +9,7 @@ database stuff *SingleStore* provides us and also mix in some *OpenAI* shenaniga
 The goal of the project is still not very clear at the moment but we want to make something along
 the lines of "There are multiple AI agents living in a Pokemon-like world, which must collaborate
 to achieve tasks given by the user".
+
+## Assets
+
+- [ArMM1998's Zelda-like tilesets and sprites](https://opengameart.org/content/zelda-like-tilesets-and-sprites)
