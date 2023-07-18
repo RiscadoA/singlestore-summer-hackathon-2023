@@ -4,9 +4,13 @@ from world import World, Interaction, Controller
 from renderer import Renderer
 
 class Open(Interaction):
-    def __init__(self, key_id: str):
+    def __init__(self, type_id: str, key_id: str):
+        self.type_id = type_id
         self.key_id = key_id
         self.open = False
+
+    def rule(self) -> str:
+        return f"Objects of type '{self.type_id}' can be opened with a '{self.key_id}'"
 
     def interact(self, world: World, chr_id: str, item_id: str, target_id: str) -> str:
         if self.open:
@@ -32,7 +36,7 @@ class App:
 
     def init_world(self):
         self.world = World((32, 32))
-        self.world.add_object_type("door", Open("key"))
+        self.world.add_object_type("door", Open("door", "key"))
 
         self.world.add_character("player", Controller(), (0, 0), {"key"})
         self.world.add_object("door", "door", (10, 10))
