@@ -3,9 +3,9 @@ import openai
 import os
 from dotenv import load_dotenv
 
-from connector import DatabaseConnector
-from embedding import EmbeddingTools
-from completion import CompletionTools
+from vector.connector import DatabaseConnector
+from vector.embedding import EmbeddingTools
+from vector.completion import CompletionTools
 
 load_dotenv()
 
