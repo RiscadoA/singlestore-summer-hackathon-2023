@@ -61,7 +61,7 @@ def main():
     """
     print(prompt)
 
-    result = completion.prompt(prompt)
+    result = completion.prompt([prompt])
     print(result)
 
 
