@@ -28,13 +28,37 @@ def main():
     )
     conn.run_query("DELETE FROM info;")  # TODO might delete this later
 
-    information = """
-    there is a tree blocking the path from A to B
-    there is an axe at A
-    you can cut down trees with an axe
+    rules = """
+    trees can be chopped down with axes and drop wood
+    you can eat the item you are holding by interacting with "mouth"
+    the shop "appleShop" sells "apples" in exchange for "money"
+    the shop "woodShop" buys "wood" in exchange for "money"
     """
 
-    data = embedding.clean_data(information)
+    context = """
+    there are trees "tree"
+    you have an axe
+    """
+
+    goal = "eat food"
+
+    actions = """
+    move(object)
+    interact(object, object)
+    pickup(object)
+    """
+
+    answer_restriction = """
+    please answer with one and only one action at a time (like the game the oregon trail)
+    """
+
+    # information = """
+    # there is a tree blocking the path from A to B
+    # there is an axe at A
+    # you can cut down trees with an axe
+    # """
+
+    data = embedding.clean_data(rules + context)
     vectors = embedding.get_embeddings(data)
 
     # insert data in the db
@@ -48,16 +72,17 @@ def main():
     # see inserted content in db:
     # SELECT id, context, JSON_ARRAY_UNPACK(vector) FROM info;
 
-    # get information from the db, with the goal as the query
-    goal = "get from A to B"
-
-    info_filter = embedding.semantic_search(goal, limit=3)
+    # info_filter = embedding.semantic_search(goal, limit=3)
+    # {", ".join(info_filter)}
 
     prompt = f"""
-    Your goal is "{goal}".
-    Write the steps to achieve your goal.
-    Information about the world:
-    {", ".join(info_filter)}
+    # Rules
+    {rules}
+    # Context
+    {context}
+    your goal is: {goal}
+
+    # Actions {actions} {answer_restriction}
     """
     print(prompt)
 
