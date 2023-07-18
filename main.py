@@ -113,10 +113,11 @@ def main():
     newline = "\n"
     lastActions = ""
     response = ""
-                # f"{initial_prompt}\n"
 
     i = 0
     while i != 20:
+        # prompt = (
+                # f"{initial_prompt}\n"
         prompt = (
                 f"# Rules\n"
                 f"{newline.join(embedding.semantic_search(goal, limit=2))}\n\n"
@@ -130,9 +131,30 @@ def main():
         print(prompt)
 
         result = completion.prompt([prompt])
-        print("\n=> RESULT: " + result + "\n")
+        print("\n=> RESULT: " + result["message"] + "\n")
 
-        inventory, response = handle_result(result, inventory, context)
+        if result.get("function_call"):
+            # Note: the JSON response may not always be valid; be sure to handle errors
+            available_functions = {
+                "move": None, # TODO this
+                "pickup": None, # TODO this
+                "interact": None, # TODO this
+            }  # only one function in this example, but you can have multiple
+            function_name = result["function_call"]["name"]
+            function_to_call = available_functions[function_name]
+            function_args = json.loads(result["function_call"]["arguments"])
+            if function_name == "interact":
+                function_response = function_to_call(
+                    obj1=function_args.get("obj1"),
+                    obj2=function_args.get("obj2"),
+                )
+            else:
+                function_response = function_to_call(
+                    obj=function_args.get("obj"),
+                )
+
+        # TODO this will be removed (?)
+        inventory, response = handle_result(result["message"], inventory, context)
 
         lastActions += result + "\n"
 
