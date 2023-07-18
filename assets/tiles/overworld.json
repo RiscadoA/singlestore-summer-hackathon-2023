@@ -1,0 +1,8 @@
+{
+    "image": "assets/tiles/overworld.png",
+    "tile_size": [16, 16],
+    "areas": {
+        "grass": [0, 0, 1, 1],
+        "tree": [6, 16, 2, 2]
+    }
+}
