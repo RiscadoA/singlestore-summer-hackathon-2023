@@ -1,83 +1,41 @@
-import pygame
-
-from world import World, HumanController
-from renderer import Renderer
-from console import Console
+from app import App
 from interactions import Open
-    
-class App:
-    def __init__(self):
-        pygame.init()
-        self.running = True
+from world import HumanController
 
-        self.console = Console()
-        self.init_world()
-        self.init_renderer()
-        self.init_terrain()
+def example1() -> App:
+    app = App((32, 32))
 
-    def __del__(self):
-        pygame.quit()
+    # Register some object types
+    app.add_object_type("door", Open("door", "key"))
 
-    def init_world(self):
-        self.world = World((32, 32))
-        self.world.add_object_type("door", (1, 2), Open("door", "key"))
-        self.world.add_object_type("goal", (2, 3))
+    # Make a cliff from the left to the right of the map, with a door in the middle
+    for i in range(0, 15):
+        app.place_ground("cliff-m", (i, 3))
+    app.place_ground("cliff-r", (15, 1))
+    app.place_ground("cliff-l", (17, 1))
+    for i in range(18, 32):
+        app.place_ground("cliff-m", (i, 3))
+    app.add_object("door", "door", (16, 5))
 
-        self.world.add_character("player", HumanController(self.console), (0, 0), {"key"})
-        self.world.add_object("door", "door", (self.world.size[0] // 2, 5))
-        self.world.add_object("goal", "goal", (20, 10))
+    # Add some decorative trees (not as objects)
+    app.place_decor("tree", (0, 0))
+    app.place_decor("tree", (3, 1))
+    app.place_decor("tree", (6, 0))
+    app.place_decor("tree", (9, 1))
+    app.place_decor("tree", (12, 0))
+    app.place_decor("tree", (18, 0))
+    app.place_decor("tree", (21, 1))
+    app.place_decor("tree", (24, 0))
+    app.place_decor("tree", (27, 1))
+    app.place_decor("tree", (30, 0))
 
-    def init_terrain(self):
-        for i in range(0, self.world.size[0] // 2 - 1):
-            self.place_terrain("cliff-m", (i, 3))
-        self.place_terrain("cliff-r", (self.world.size[0] // 2 - 1, 1))
-        self.place_terrain("cliff-l", (self.world.size[0] // 2 + 1, 1))
-        for i in range(self.world.size[0] // 2 + 2, self.world.size[0]):
-            self.place_terrain("cliff-m", (i, 3))
+    # Add a player character, with a key in their inventory
+    app.add_character("player", HumanController(app.console), (0, 2), {"key"})
 
-    def place_terrain(self, area: str, position: tuple[int, int]):
-        self.renderer.layers.ground.place(position, self.renderer.tile_locator[area])
-        _, _, w, h = self.renderer.tile_locator[area]
-        self.world.make_impassable(position + (w, h))
+    # Add a goal
+    app.add_object("goal", "goal", (15, 10))
 
-    def init_renderer(self):
-        self.screen = pygame.display.set_mode((self.world.size[0] * 16, self.world.size[1] * 16))
-        self.renderer = Renderer(self.world, self.console)
-
-    def poll_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    self.console.submit()
-                elif event.key == pygame.K_BACKSPACE:
-                    self.console.pop()
-                elif event.unicode:
-                    self.console.feed(event.unicode)
-
-    def tick(self, delta_t: float):
-        self.world.tick(delta_t)
-        self.renderer.tick(delta_t)
-    
-    def render(self):
-        self.screen.fill((0, 0, 0))
-        self.renderer.render(self.screen)
-        pygame.display.flip()
-
-    def run(self):
-        last_t = pygame.time.get_ticks()
-        while True:
-            self.poll_events()
-            if not self.running:
-                break
-
-            now_t = pygame.time.get_ticks()
-            delta_t = (now_t - last_t) / 1000
-            last_t = now_t
-
-            self.tick(delta_t)
-            self.render()
+    return app
 
 if __name__ == "__main__":
-    App().run()
+    example1().run()
