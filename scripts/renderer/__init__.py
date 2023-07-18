@@ -1,9 +1,11 @@
 import pygame
 
 from world import World, Character, Walk
+from console import Console
 
 from .tiles import TileLocator, Layers
 from .animation import AnimationSet, AnimationPlayer
+from .font import Font
 
 TILES_PATH = "assets/tiles/overworld.json"
 WALK_PATH = "assets/characters/walk.json"
@@ -39,11 +41,13 @@ class RendererCharacter:
             surface.blit(self.animations[self.character.animated_direction][0], position)
 
 class Renderer:
-    def __init__(self, world: World):
+    def __init__(self, world: World, console: Console):
         self.world = world
+        self.console = console
 
         self.tile_locator = TileLocator.load(TILES_PATH)
         self.character_animations = AnimationSet.load(pygame.image.load(GUY_PATH).convert_alpha(), WALK_PATH)
+        self.font = Font(FONT_PATH)
 
         self.layers = Layers(self.tile_locator.tileset, world.size)
         self.characters = {}
@@ -75,3 +79,5 @@ class Renderer:
         for character in self.characters.values():
             character.render(surface)
 
+        if self.console.display:
+            self.font.render(surface, (256, 450), self.console.display)

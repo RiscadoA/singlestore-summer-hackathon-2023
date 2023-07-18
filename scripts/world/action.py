@@ -15,10 +15,14 @@ class Action:
         raise NotImplementedError
     
 class Idle(Action):
-    """An action that does nothing and never completes"""
+    """An action that does nothing"""
+
+    def __init__(self, finish: bool = False):
+        """If finish is False, the action will never complete"""
+        self.finish = finish
 
     def tick(self, delta_t: float) -> bool:
-        return False
+        return self.finish
 
 class Walk(Action):
     """An action that moves the character along a given path"""

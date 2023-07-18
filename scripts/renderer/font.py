@@ -21,17 +21,17 @@ class Font:
                 "size": (w, h),
             }
     
-    def available_widelta_th(self):
+    def available_width(self):
         """Returns how many pixels fit on a line"""
         return self.characters["background"]["size"][0] - self.background_margin[0] * 2
 
-    def text_widelta_th(self, text: str):
+    def text_width(self, text: str):
         """Returns how many pixels wide the text is"""
-        widelta_th = 0
+        width = 0
         for character in text:
             assert character != '\n', "Newlines are not supported here"
-            widelta_th += self.characters[character]["size"][0]
-        return widelta_th
+            width += self.characters[character]["size"][0]
+        return width
 
     def render_raw(self, surface: pygame.Surface, position: tuple[int, int], text: str):
         """Renders text to a surface, without any centering or automatic line breaks"""
@@ -55,7 +55,7 @@ class Font:
             processed_line = ""
             for word in line.split(" "):
                 if processed_line:
-                    if self.text_widelta_th(processed_line + " " + word) > self.available_widelta_th():
+                    if self.text_width(processed_line + " " + word) > self.available_width():
                         processed += processed_line + "\n"
                         processed_line = ""
                     else:
