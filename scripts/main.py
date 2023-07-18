@@ -32,8 +32,10 @@ class App:
 
     def init_world(self):
         self.world = World((32, 32))
+        self.world.add_object_type("door", Open("key"))
+
         self.world.add_character("player", Controller(), (0, 0), {"key"})
-        self.world.add_object("door", (31, 31), Open("key"))
+        self.world.add_object("door", "door", (10, 10))
 
     def init_renderer(self):
         self.screen = pygame.display.set_mode((self.world.size[0] * 16, self.world.size[1] * 16))

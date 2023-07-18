@@ -47,9 +47,12 @@ class Renderer:
 
         self.layers = Layers(self.tile_locator.tileset, world.size)
         self.characters = {}
+        self.objects = set()
 
     def tick(self, delta_t: float):
         """Updates the renderer"""
+
+        # Update the state of the rendered characters
         for character_id in self.world.characters:
             if character_id not in self.characters:
                 self.characters[character_id] = RendererCharacter(
@@ -57,6 +60,12 @@ class Renderer:
                     self.world.characters[character_id],
                     self.character_animations)
             self.characters[character_id].tick(delta_t)
+
+        # Update the object tilemap, if necessary
+        for obj_id, obj in self.world.objects.items():
+            if obj_id not in self.objects:
+                self.objects.add(obj_id)
+                self.layers.objects.place(obj.position, self.tile_locator[obj.type])
 
     def render(self, surface: pygame.Surface):
         """Renders the world to the given surface"""

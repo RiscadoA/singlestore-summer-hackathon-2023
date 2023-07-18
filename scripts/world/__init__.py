@@ -14,6 +14,7 @@ class World:
         self.size = size
 
         self.characters = {}
+        self.object_types = {}
         self.objects = {}
         self.navigator = Navigator(size, self.objects)
 
@@ -23,10 +24,16 @@ class World:
         self.characters[id] = Character(controller, position, inventory)
         controller.prepare(self, id)
 
-    def add_object(self, id: str, position: tuple[int, int], interaction: Optional[Interaction] = None):
-        """Adds a new object to the world at the given position, optionally with an interaction"""
+    def add_object_type(self, type: str, interaction: Optional[Interaction] = None):
+        """Adds a new object type to the world"""
+        assert type not in self.object_types, f"Object type {type} already exists"
+        self.object_types[type] = interaction
+
+    def add_object(self, type: str, id: str, position: tuple[int, int]):
+        """Adds a new object to the world at the given position"""
         assert id not in self.objects, f"Object with id {id} already exists"
-        self.objects[id] = Object(position, interaction)
+        assert type in self.object_types, f"Object type {type} does not exist"
+        self.objects[id] = Object(type, position, self.object_types[type])
 
     def tick(self, delta_t: float):
         """Updates the state of all characters in the world"""
