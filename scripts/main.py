@@ -1,5 +1,5 @@
 from app import App
-from interactions import Open
+from interactions import Open, PickUp
 from world import HumanController
 
 def example1() -> App:
@@ -7,6 +7,7 @@ def example1() -> App:
 
     # Register some object types
     app.add_object_type("door", Open("door", "key"))
+    app.add_object_type("key", PickUp("key", "hand"), occlude=False)
 
     # Make a cliff from the left to the right of the map, with a door in the middle
     for i in range(0, 15):
@@ -23,7 +24,6 @@ def example1() -> App:
     app.place_decor("tree", (6, 0))
     app.place_decor("tree", (9, 1))
     app.place_decor("tree", (12, 0))
-    app.place_decor("tree", (18, 0))
     app.place_decor("tree", (21, 1))
     app.place_decor("tree", (24, 0))
     app.place_decor("tree", (27, 1))
@@ -37,10 +37,11 @@ def example1() -> App:
     app.place_decor("boulder", (29, 11))
     app.place_decor("boulder", (7, 18))
 
-    # Add a player character, with a key in their inventory
-    app.add_character("player", HumanController(app.console), (16, 4), {"key"})
+    # Add a player character, with a hand
+    app.add_character("player", HumanController(app.console), (0, 2), {"hand"})
 
-    # Add a goal
+    # Add a key and a goal
+    app.add_object("key", "key", (31, 2))
     app.add_object("goal", "goal", (15, 10))
 
     return app

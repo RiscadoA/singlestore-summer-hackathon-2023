@@ -21,9 +21,9 @@ class App:
     def __del__(self):
         pygame.quit()
 
-    def add_object_type(self, name: str, interaction: Optional[Interaction] = None):
+    def add_object_type(self, name: str, interaction: Optional[Interaction] = None, occlude=True):
         _, _, w, h = self.renderer.tile_locator[name]
-        self.world.add_object_type(name, (w, h), interaction)
+        self.world.add_object_type(name, (w, h), interaction, occlude)
     
     def add_object(self, type_id: str, name: str, position: tuple[int, int]):
         if type_id not in self.world.object_types:

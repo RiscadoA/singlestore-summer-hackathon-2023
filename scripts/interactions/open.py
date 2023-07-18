@@ -2,6 +2,7 @@ from world import Interaction
 
 class Open(Interaction):
     def __init__(self, type_id: str, key_id: str):
+        super().__init__(True)
         self.type_id = type_id
         self.key_id = key_id
         self.open = False

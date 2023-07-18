@@ -1,6 +1,9 @@
 class Interaction:
     """Represents a possible interaction with an object"""
 
+    def __init__(self, removeable: bool) -> None:
+        self.removeable = removeable
+
     def rule(self) -> str:
         """Returns a string describing the interaction"""
         raise NotImplementedError()

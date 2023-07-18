@@ -28,10 +28,10 @@ class World:
         self.characters[id] = Character(controller, position, inventory)
         controller.prepare(self, id)
 
-    def add_object_type(self, type: str, size: tuple[int, int], interaction: Optional[Interaction] = None):
+    def add_object_type(self, type: str, size: tuple[int, int], interaction: Optional[Interaction] = None, occlude=True):
         """Adds a new object type to the world"""
         assert type not in self.object_types, f"Object type {type} already exists"
-        self.object_types[type] = ObjectType(size, interaction)
+        self.object_types[type] = ObjectType(size, interaction, occlude)
 
     def add_object(self, type: str, id: str, position: tuple[int, int]):
         """Adds a new object to the world at the given position"""

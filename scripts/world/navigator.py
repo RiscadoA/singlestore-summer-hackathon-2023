@@ -1,12 +1,12 @@
 from typing import Union, Optional
 
 from .object import Object
-from interactions import Open
 
-def is_openable(objects: dict[str, Object], occluded: str):
+def is_removeable(objects: dict[str, Object], occluded: str):
     if occluded not in objects:
         return False
-    return isinstance(objects[occluded].interaction, Open)
+    interaction = objects[occluded].interaction
+    return interaction is None or interaction.removeable
 
 class Node:
     def __init__(self):
@@ -48,7 +48,7 @@ class Navigator:
             self.seen_objects.pop(obj_id)
 
         for obj_id, obj in self.objects.items():
-            if obj_id not in self.seen_objects:
+            if obj_id not in self.seen_objects and obj.occlude:
                 self.seen_objects[obj_id] = obj.position + obj.size
                 self.occlude(obj_id, obj.position + obj.size)
 
@@ -64,16 +64,13 @@ class Navigator:
         if result is not None:
             return result
         
-        result = self.__get_path(origin, target, lambda node: node.occluded != "" and node.occluded != target and not is_openable(self.objects, node.occluded))
+        result = self.__get_path(origin, target, lambda node: node.occluded != "" and node.occluded != target and not is_removeable(self.objects, node.occluded))
         if result is not None:
             # Figure out which node is blocking the path
             for node in result:
                 obj_id = self.nodes[node[0]][node[1]].occluded
                 if obj_id != "" and obj_id != target:
-                    assert isinstance(self.objects[obj_id].interaction, Open)
-                    interaction: Open = self.objects[obj_id].interaction # type: ignore
-                    if not interaction.open:
-                        return f"Cannot reach '{target}' because '{obj_id}' is closed and blocking the path"
+                    return f"Cannot reach '{target}' because '{obj_id}' is blocking the path"
             return result
 
         return f"'{target}' is unreacheable"
