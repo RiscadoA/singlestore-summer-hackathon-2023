@@ -20,7 +20,7 @@ class CompletionTools:
             messages=[{"role": "system", "content": prompt} for prompt in prompts],
         )
 
-        print("Full response:")
-        print(result)
+        # print("Full response:")
+        # print(result)
 
         return result["choices"][0]["message"]["content"]
