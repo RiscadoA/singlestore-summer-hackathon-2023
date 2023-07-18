@@ -28,6 +28,15 @@ def main():
     )
     conn.run_query("DELETE FROM info;")  # TODO might delete this later
 
+    initial_prompt = (
+            "You are an assistant that only speaks JSON. Do NOT write normal text.\n"
+            "The format is as follows:\n"
+            "{\n"
+            "  'action': // one of 'move', 'interact', 'pickup'\n"
+            "  'objects': // array: one element for 'move' and 'pickup', two for 'interact'\n"
+            "}\n"
+            )
+
     rules = (
             "trees can be chopped down with axes and drop wood\n"
             "you can eat the item you are holding by interacting with 'mouth'\n"
@@ -72,15 +81,13 @@ def main():
     i = 0
     while i != 2:
         prompt = (
+                f"{initial_prompt}\n"
                 f"# Rules\n"
                 f"{newline.join(embedding.semantic_search(goal, limit=3))}\n\n"
-                f"# Context\n"
-                f"{context}\n"
+                f"# Context\n{context}\n"
                 f"your goal is: {goal}\n\n"
-                f"# Previous actions\n"
-                f"{lastActions}\n"
-                f"# Actions\n"
-                f"{actions}\n"
+                f"# Previous actions\n{lastActions}\n"
+                f"# Actions\n{actions}\n"
                 f"{answer_restriction}"
                 )
         print(prompt)
