@@ -1,4 +1,4 @@
-from world import World, Interaction, Navigator
+from world import Interaction
 
 class Open(Interaction):
     def __init__(self, type_id: str, key_id: str):
@@ -9,7 +9,7 @@ class Open(Interaction):
     def rule(self) -> str:
         return f"Objects of type '{self.type_id}' can be opened with a '{self.key_id}'"
 
-    def interact(self, world: World, chr_id: str, item_id: str, target_id: str) -> str:
+    def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
         if self.open:
             return f"'{target_id}' is already open"
         if item_id != self.key_id:
