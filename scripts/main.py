@@ -31,7 +31,11 @@ def example1() -> App:
 
     # Add some decorative logs
     app.place_decor("log", (3, 8))
-    app.place_decor("log", (19, 20))
+    app.place_decor("log", (21, 20))
+
+    # Add a decorative boulder
+    app.place_decor("boulder", (29, 11))
+    app.place_decor("boulder", (7, 18))
 
     # Add a player character, with a key in their inventory
     app.add_character("player", HumanController(app.console), (16, 4), {"key"})
