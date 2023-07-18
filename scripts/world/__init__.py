@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .interaction import Interaction
-from .object import Object
+from .object import ObjectType, Object
 from .character import Character, Direction
 from .action import Action, Idle, Walk, Interact
 from .navigator import Navigator
@@ -24,10 +24,10 @@ class World:
         self.characters[id] = Character(controller, position, inventory)
         controller.prepare(self, id)
 
-    def add_object_type(self, type: str, interaction: Optional[Interaction] = None):
+    def add_object_type(self, type: str, size: tuple[int, int], interaction: Optional[Interaction] = None):
         """Adds a new object type to the world"""
         assert type not in self.object_types, f"Object type {type} already exists"
-        self.object_types[type] = interaction
+        self.object_types[type] = ObjectType(size, interaction)
 
     def add_object(self, type: str, id: str, position: tuple[int, int]):
         """Adds a new object to the world at the given position"""

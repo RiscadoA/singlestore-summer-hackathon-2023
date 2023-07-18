@@ -38,11 +38,12 @@ class App:
 
     def init_world(self):
         self.world = World((32, 32))
-        self.world.add_object_type("door", Open("door", "key"))
-        self.world.add_object_type("goal")
+        self.world.add_object_type("door", (1, 2), Open("door", "key"))
+        self.world.add_object_type("goal", (2, 3))
 
         self.world.add_character("player", HumanController(self.console), (0, 0), {"key"})
         self.world.add_object("door", "door", (10, 10))
+        self.world.add_object("door", "door2", (3, 0))
         self.world.add_object("goal", "goal", (20, 10))
 
     def init_renderer(self):

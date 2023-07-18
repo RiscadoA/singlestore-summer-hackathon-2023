@@ -34,7 +34,7 @@ class RendererCharacter:
         self.player.update(1.5 * Walk.SPEED * delta_t)
 
     def render(self, surface: pygame.Surface):
-        position = tuple(int(x * self.tile_size[i]) for i, x in enumerate(self.position))
+        position = (self.position[0] * self.tile_size[0], (self.position[1] - 0.5) * self.tile_size[1])
         if self.player.is_playing():
             surface.blit(self.player.get_image(), position)
         else:

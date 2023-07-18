@@ -25,7 +25,6 @@ class HumanController(Controller):
         
         if not self.console.waiting():
             if self.failed:
-                print("B")
                 self.console.print("Invalid command, must be one of: walk target, interact item target")
                 self.failed = False
             self.console.print("- ", end="")
@@ -41,7 +40,5 @@ class HumanController(Controller):
         elif len(command) == 3 and command[0] == "interact":
             return Interact(command[1], command[2])
 
-        print("A")
         self.failed = True
-        print(self.failed)
         return Idle(True)
