@@ -65,16 +65,6 @@ def main():
     )
     conn.run_query("DELETE FROM info;")  # TODO might delete this later
 
-    initial_prompt = (
-            'You are an assistant that only speaks JSON. Do NOT write normal text.\n'
-            'The format is as follows:\n'
-            '{\n'
-            '  "action": // one of "move", "interact", "pickup"\n'
-            '  "objects": // for "move" and "pickup": one element array. for "interact", [obj1, obj2] ("use <obj1> on <obj2>")\n'
-            '  "goals": // queue: in decreasing order of immediance. You can only push and pop one element at a time.\n'
-            '}\n'
-            )
-
     inventory = ["axe",]
 
     rules = (
@@ -93,7 +83,8 @@ def main():
     goal = "eat food"
 
     answer_restriction = (
-            "please answer with one and only one action at a time (like the game the oregon trail), and add intermediate goals"
+            "please answer with one and only one action at a time (like the game the oregon trail), and add intermediate goals\n"
+            "only use the functions you have been provided with"
     )
 
     data = embedding.clean_data(rules)
@@ -116,8 +107,6 @@ def main():
 
     i = 0
     while i != 20:
-        # prompt = (
-                # f"{initial_prompt}\n"
         prompt = (
                 f"# Rules\n"
                 f"{newline.join(embedding.semantic_search(goal, limit=2))}\n\n"
