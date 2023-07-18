@@ -1,28 +1,9 @@
 import pygame
 
-from world import World, Interaction, HumanController
+from world import World, HumanController
 from renderer import Renderer
 from console import Console
-
-class Open(Interaction):
-    def __init__(self, type_id: str, key_id: str):
-        self.type_id = type_id
-        self.key_id = key_id
-        self.open = False
-
-    def rule(self) -> str:
-        return f"Objects of type '{self.type_id}' can be opened with a '{self.key_id}'"
-
-    def interact(self, world: World, chr_id: str, item_id: str, target_id: str) -> str:
-        if self.open:
-            return f"'{target_id}' is already open"
-        if item_id != self.key_id:
-            return f"'{target_id} can only be opened with a '{self.key_id}'"
-        if self.key_id not in world.characters[chr_id].inventory:
-            return f"Cannot open '{target_id}' because you do not have a '{self.key_id}'"
-
-        self.open = True
-        return ""
+from interactions import Open
     
 class App:
     def __init__(self):
@@ -32,6 +13,7 @@ class App:
         self.console = Console()
         self.init_world()
         self.init_renderer()
+        self.init_terrain()
 
     def __del__(self):
         pygame.quit()
@@ -42,9 +24,21 @@ class App:
         self.world.add_object_type("goal", (2, 3))
 
         self.world.add_character("player", HumanController(self.console), (0, 0), {"key"})
-        self.world.add_object("door", "door", (10, 10))
-        self.world.add_object("door", "door2", (3, 0))
+        self.world.add_object("door", "door", (self.world.size[0] // 2, 5))
         self.world.add_object("goal", "goal", (20, 10))
+
+    def init_terrain(self):
+        for i in range(0, self.world.size[0] // 2 - 1):
+            self.place_terrain("cliff-m", (i, 3))
+        self.place_terrain("cliff-r", (self.world.size[0] // 2 - 1, 1))
+        self.place_terrain("cliff-l", (self.world.size[0] // 2 + 1, 1))
+        for i in range(self.world.size[0] // 2 + 2, self.world.size[0]):
+            self.place_terrain("cliff-m", (i, 3))
+
+    def place_terrain(self, area: str, position: tuple[int, int]):
+        self.renderer.layers.ground.place(position, self.renderer.tile_locator[area])
+        _, _, w, h = self.renderer.tile_locator[area]
+        self.world.make_impassable(position + (w, h))
 
     def init_renderer(self):
         self.screen = pygame.display.set_mode((self.world.size[0] * 16, self.world.size[1] * 16))

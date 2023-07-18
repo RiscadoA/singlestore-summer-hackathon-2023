@@ -102,4 +102,4 @@ class Layers:
     def __init__(self, tileset: Tileset, size: tuple[int, int]):
         """Creates a set of layers with the given tileset and size, in tiles"""
         self.ground = Tilemap(tileset, size)
-        self.objects = Tilemap(tileset, size)
+        self.objects = Tilemap(tileset, size, (31, 31))

@@ -17,27 +17,34 @@ class Navigator:
         self.seen_objects = dict[str, tuple[int, int, int, int]]()
         self.nodes = [[Node() for _ in range(size[1])] for _ in range(size[0])]
 
+    def occlude(self, what: str, area: tuple[int, int, int, int]):
+        x, y, w, h = area
+        for i in range(x, x + w):
+            for j in range(y, y + h):
+                assert self.nodes[i][j].occluded == ""
+                self.nodes[i][j].occluded = what
+    
+    def unocclude(self, what: str, area: tuple[int, int, int, int]):
+        x, y, w, h = area
+        for i in range(x, x + w):
+            for j in range(y, y + h):
+                assert self.nodes[i][j].occluded == what
+                self.nodes[i][j].occluded = ""
+
     def update_occlusion(self):
         removed = []
         for obj_id in self.seen_objects:
             if obj_id not in self.objects:
                 x, y, w, h = self.seen_objects[obj_id]
                 removed.append(obj_id)
-                for i in range(x, x + w):
-                    for j in range(y, y + h):
-                        assert self.nodes[i][j].occluded == obj_id
-                        self.nodes[i][j].occluded = ""
+                self.unocclude(obj_id, (x, y, w, h))
         for obj_id in removed:
             self.seen_objects.pop(obj_id)
 
         for obj_id, obj in self.objects.items():
             if obj_id not in self.seen_objects:
                 self.seen_objects[obj_id] = obj.position + obj.size
-                x, y, w, h = obj.position + obj.size
-                for i in range(x, x + w):
-                    for j in range(y, y + h):
-                        assert not self.nodes[i][j].occluded, f"Object {obj_id} occludes another object"
-                        self.nodes[i][j].occluded = obj_id
+                self.occlude(obj_id, obj.position + obj.size)
 
     def heuristic(self, node: tuple[int, int], target: tuple[int, int]) -> int:
         return abs(node[0] - target[0]) + abs(node[1] - target[1])

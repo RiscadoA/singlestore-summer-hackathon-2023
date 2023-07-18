@@ -13,10 +13,14 @@ class World:
     def __init__(self, size: tuple[int, int]):
         self.size = size
 
-        self.characters = {}
-        self.object_types = {}
-        self.objects = {}
+        self.characters: dict[str, Character] = {}
+        self.object_types: dict[str, ObjectType] = {}
+        self.objects: dict[str, Object] = {}
         self.navigator = Navigator(size, self.objects)
+
+    def make_impassable(self, area: tuple[int, int, int, int]):
+        """Makes the given area impassable"""
+        self.navigator.occlude("impassable", area)
 
     def add_character(self, id: str, controller: Controller, position: tuple[int, int], inventory: set[str] = set()):
         """Adds a new character to the world"""
