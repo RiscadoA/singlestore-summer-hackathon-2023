@@ -17,20 +17,27 @@ completion = CompletionTools()
 
 
 def handle_result(result, inventory, context):
-    parse = json.loads(result)
+    parses = json.loads(result)
+    obj = parses["objects"][0]
 
-    if parse["action"] == "move":
-        return inventory, f"You are next to {parse['objects'][0]}"
+    if parses["action"] == "move":
+        return inventory, f"You are next to {obj}"
 
-    elif parse["action"] == "interact":
-        iv = parse["objects"][1]
-        if iv not in inventory:
-            return inventory, f"You do not have {iv}"
+    elif parses["action"] == "interact":
+        if len(parses["objects"]) != 2:
+            return inventory, "Not enough arguments for 'interact' action"
 
-        return inventory, f"You used {parse['objects'][0]} on {iv}"
+        if obj not in inventory:
+            return inventory, f"You do not have {obj}"
 
-    elif parse["action"] == "pickup":
-        obj = parse["objects"][0]
+        iv = parses["objects"][1]
+        response = f"You used {obj} on {iv}"
+        if obj == "axe" and iv == "tree":
+            inventory += ["wood",]
+            response += " and now you have wood"
+        return inventory, response
+
+    elif parses["action"] == "pickup":
 
         flag = False
         for el in context:
@@ -43,7 +50,7 @@ def handle_result(result, inventory, context):
         else:
             return inventory, f"There is no {obj} to pickup"
 
-    return inventory, None
+    return None, None
 
 def main():
     # create table
@@ -63,8 +70,8 @@ def main():
             'The format is as follows:\n'
             '{\n'
             '  "action": // one of "move", "interact", "pickup"\n'
-            '  "objects": // array: needs one element for "move" and "pickup", and two elements for "interact"\n'
-            '  "goals": // array: from more immediate goal to less imediate goal. You can create new goals as you see fit.\n'
+            '  "objects": // for "move" and "pickup": one element array. for "interact", [obj1, obj2] ("use <obj1> on <obj2>")\n'
+            '  "goals": // queue: in decreasing order of immediance. You can only push and pop one element at a time.\n'
             '}\n'
             )
 
@@ -72,7 +79,7 @@ def main():
 
     rules = (
             "trees can be chopped down with axes and drop wood\n"
-            "you can eat the item you are holding by interacting with 'mouth'\n"
+            "you can eat the item you are holding by interacting with ['mouth', food]\n"
             "the shop 'appleShop' sells 'apples' in exchange for 'money'\n"
             "the shop 'woodShop' buys 'wood' in exchange for 'money'\n"
             )
@@ -80,13 +87,13 @@ def main():
     context = (
             f"there are trees 'tree'\n"
             f"there are shops 'appleShop' and 'woodShop'\n"
-            f"you have the following items: {', '.join(inventory)}"
+            f"you have the following items: "
             )
 
     goal = "eat food"
 
     answer_restriction = (
-            "please answer with one and only one action at a time (like the game the oregon trail)"
+            "please answer with one and only one action at a time (like the game the oregon trail), and add intermediate goals"
     )
 
     data = embedding.clean_data(rules)
@@ -106,14 +113,14 @@ def main():
     newline = "\n"
     lastActions = ""
     response = ""
+                # f"{initial_prompt}\n"
 
     i = 0
     while i != 20:
         prompt = (
-                f"{initial_prompt}\n"
                 f"# Rules\n"
                 f"{newline.join(embedding.semantic_search(goal, limit=2))}\n\n"
-                f"# Context\n{context}\n"
+                f"# Context\n{context}{', '.join(inventory)}\n"
                 f"your goal is: {goal}\n\n"
                 f"# Previous actions\n{lastActions}\n"
                 f"{answer_restriction}\n\n"
