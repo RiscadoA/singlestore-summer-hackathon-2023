@@ -15,7 +15,7 @@ class Tileset:
     def __getitem__(self, key: tuple[int, int]) -> pygame.Surface:
         x, y = key
         return self.tiles[x][y]
-
+    
     @staticmethod
     def load(path: str, size: tuple[int, int]) -> "Tileset":
         """Loads a tileset from an image at a given path"""
@@ -46,6 +46,7 @@ class Tilemap:
         """Returns an image of the tilemap"""
         if self.dirty:
             self.dirty = False
+            self.image.fill((0, 0, 0, 0))
             for x in range(self.size[0]):
                 for y in range(self.size[1]):
                     tile = self.tileset[self.tiles[x][y]]
@@ -64,6 +65,14 @@ class Tilemap:
         for x in range(w):
             for y in range(h):
                 self[position[0] + x, position[1] + y] = (t + x, u + y)
+
+    def replace(self, position, size: tuple[int, int], what: tuple[int, int]):
+        """Replaces the given area of the tilemap with the specified tile"""
+        x, y = position
+        w, h = size
+        for i in range(w):
+            for j in range(h):
+                self[x + i, y + j] = what
 
     def __setitem__(self, key: tuple[int, int], value: tuple[int, int]):
         self.dirty = True
@@ -99,7 +108,8 @@ class TileLocator:
 class Layers:
     """Stores the tilemap layers for a world"""
 
-    def __init__(self, tileset: Tileset, size: tuple[int, int]):
+    def __init__(self, tileset: Tileset, size: tuple[int, int], air: tuple[int, int]):
         """Creates a set of layers with the given tileset and size, in tiles"""
         self.ground = Tilemap(tileset, size)
-        self.objects = Tilemap(tileset, size, (31, 31))
+        self.objects = Tilemap(tileset, size, air)
+        self.air = air

@@ -17,5 +17,6 @@ class Open(Interaction):
         if self.key_id not in world.characters[chr_id].inventory:
             return f"Cannot open '{target_id}' because you do not have a '{self.key_id}'"
 
+        world.objects.pop(target_id)
         self.open = True
         return ""

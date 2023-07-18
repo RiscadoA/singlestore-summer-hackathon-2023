@@ -2,10 +2,12 @@
     "image": "assets/tiles/overworld.png",
     "tile_size": [16, 16],
     "areas": {
+        "air": [31, 31, 1, 1],
         "grass": [0, 0, 1, 1],
         "tree": [5, 16, 2, 2],
         "door": [25, 7, 1, 2],
         "goal": [8, 31, 2, 3],
+        "log": [3, 5, 3, 1],
         "cliff-l": [4, 9, 1, 6],
         "cliff-m": [5, 11, 1, 4],
         "cliff-r": [6, 9, 1, 6]

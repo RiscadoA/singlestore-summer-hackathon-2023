@@ -1,6 +1,6 @@
 import pygame
 
-from world import World, Character, Walk
+from world import World, Character, Walk, Object
 from console import Console
 
 from .tiles import TileLocator, Layers
@@ -49,9 +49,10 @@ class Renderer:
         self.character_animations = AnimationSet.load(pygame.image.load(GUY_PATH).convert_alpha(), WALK_PATH)
         self.font = Font(FONT_PATH)
 
-        self.layers = Layers(self.tile_locator.tileset, world.size)
+        air_x, air_y, _, _ = self.tile_locator["air"]
+        self.layers = Layers(self.tile_locator.tileset, world.size, (air_x, air_y))
         self.characters = {}
-        self.objects = set()
+        self.objects = dict[str, Object]()
 
     def tick(self, delta_t: float):
         """Updates the renderer"""
@@ -66,10 +67,18 @@ class Renderer:
             self.characters[character_id].tick(delta_t)
 
         # Update the object tilemap, if necessary
+        removed = []
+        for obj_id, obj in self.objects.items():
+            if obj_id not in self.world.objects:
+                self.layers.objects.replace(obj.position, obj.size, self.layers.air)
+        for obj_id in removed:
+            self.objects.pop(obj_id)
+
         for obj_id, obj in self.world.objects.items():
             if obj_id not in self.objects:
-                self.objects.add(obj_id)
+                self.objects[obj_id] = obj
                 self.layers.objects.place(obj.position, self.tile_locator[obj.type])
+                
 
     def render(self, surface: pygame.Surface):
         """Renders the world to the given surface"""

@@ -29,8 +29,12 @@ def example1() -> App:
     app.place_decor("tree", (27, 1))
     app.place_decor("tree", (30, 0))
 
+    # Add some decorative logs
+    app.place_decor("log", (3, 8))
+    app.place_decor("log", (19, 20))
+
     # Add a player character, with a key in their inventory
-    app.add_character("player", HumanController(app.console), (0, 2), {"key"})
+    app.add_character("player", HumanController(app.console), (16, 4), {"key"})
 
     # Add a goal
     app.add_object("goal", "goal", (15, 10))
