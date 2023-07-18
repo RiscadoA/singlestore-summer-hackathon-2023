@@ -7,6 +7,8 @@ from vector.connector import DatabaseConnector
 from vector.embedding import EmbeddingTools
 from vector.completion import CompletionTools
 
+from scripts.main import App
+
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -52,6 +54,15 @@ def handle_result(result, inventory, context):
 
     return None, None
 
+def move(target_id):
+    pass
+
+def pickup(target_id):
+    pass
+
+def interact(item_id, target_id):
+    pass
+
 def main():
     # create table
     conn.run_query(
@@ -64,6 +75,8 @@ def main():
         """
     )
     conn.run_query("DELETE FROM info;")  # TODO might delete this later
+
+    app = App()
 
     inventory = ["axe",]
 
@@ -123,23 +136,25 @@ def main():
         print("\n=> RESULT: " + result["message"] + "\n")
 
         if result.get("function_call"):
-            # Note: the JSON response may not always be valid; be sure to handle errors
+            # TODO the JSON response may not always be valid; be sure to handle errors
             available_functions = {
-                "move": None, # TODO this
-                "pickup": None, # TODO this
-                "interact": None, # TODO this
-            }  # only one function in this example, but you can have multiple
+                "move": move,
+                "pickup": pickup,
+                "interact": interact,
+            }
             function_name = result["function_call"]["name"]
             function_to_call = available_functions[function_name]
             function_args = json.loads(result["function_call"]["arguments"])
             if function_name == "interact":
-                function_response = function_to_call(
-                    obj1=function_args.get("obj1"),
-                    obj2=function_args.get("obj2"),
+                inventory, response = function_to_call(
+                # function_response = function_to_call(
+                    function_args.get("obj1"),
+                    function_args.get("obj2")
                 )
             else:
-                function_response = function_to_call(
-                    obj=function_args.get("obj"),
+                inventory, response = function_to_call(
+                # function_response = function_to_call(
+                    function_args.get("obj")
                 )
 
         # TODO this will be removed (?)
