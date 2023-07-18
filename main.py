@@ -1,3 +1,4 @@
+import json
 import openai
 import os
 from dotenv import load_dotenv
@@ -15,6 +16,35 @@ embedding = EmbeddingTools(conn)
 completion = CompletionTools()
 
 
+def handle_result(result, inventory, context):
+    parse = json.loads(result)
+
+    if parse["action"] == "move":
+        return inventory, f"You are next to {parse['objects'][0]}"
+
+    elif parse["action"] == "interact":
+        iv = parse["objects"][1]
+        if iv not in inventory:
+            return inventory, f"You do not have {iv}"
+
+        return inventory, f"You used {parse['objects'][0]} on {iv}"
+
+    elif parse["action"] == "pickup":
+        obj = parse["objects"][0]
+
+        flag = False
+        for el in context:
+            if obj in el:
+                flag = True
+
+        if flag:
+            inventory += [obj,]
+            return inventory, f"You now have {obj}"
+        else:
+            return inventory, f"There is no {obj} to pickup"
+
+    return inventory, None
+
 def main():
     # create table
     conn.run_query(
@@ -29,13 +59,16 @@ def main():
     conn.run_query("DELETE FROM info;")  # TODO might delete this later
 
     initial_prompt = (
-            "You are an assistant that only speaks JSON. Do NOT write normal text.\n"
-            "The format is as follows:\n"
-            "{\n"
-            "  'action': // one of 'move', 'interact', 'pickup'\n"
-            "  'objects': // array: one element for 'move' and 'pickup', two for 'interact'\n"
-            "}\n"
+            'You are an assistant that only speaks JSON. Do NOT write normal text.\n'
+            'The format is as follows:\n'
+            '{\n'
+            '  "action": // one of "move", "interact", "pickup"\n'
+            '  "objects": // array: needs one element for "move" and "pickup", and two elements for "interact"\n'
+            '  "goals": // array: from more immediate goal to less imediate goal. You can create new goals as you see fit.\n'
+            '}\n'
             )
+
+    inventory = ["axe",]
 
     rules = (
             "trees can be chopped down with axes and drop wood\n"
@@ -45,17 +78,12 @@ def main():
             )
 
     context = (
-            "there are trees 'tree'\n"
-            "you have an axe\n"
+            f"there are trees 'tree'\n"
+            f"there are shops 'appleShop' and 'woodShop'\n"
+            f"you have the following items: {', '.join(inventory)}"
             )
 
     goal = "eat food"
-
-    actions = (
-            "move(object)\n"
-            "interact(object, object)\n"
-            "pickup(object)\n"
-            )
 
     answer_restriction = (
             "please answer with one and only one action at a time (like the game the oregon trail)"
@@ -77,27 +105,32 @@ def main():
 
     newline = "\n"
     lastActions = ""
+    response = ""
 
     i = 0
-    while i != 2:
+    while i != 20:
         prompt = (
                 f"{initial_prompt}\n"
                 f"# Rules\n"
-                f"{newline.join(embedding.semantic_search(goal, limit=3))}\n\n"
+                f"{newline.join(embedding.semantic_search(goal, limit=2))}\n\n"
                 f"# Context\n{context}\n"
                 f"your goal is: {goal}\n\n"
                 f"# Previous actions\n{lastActions}\n"
-                f"# Actions\n{actions}\n"
-                f"{answer_restriction}"
+                f"{answer_restriction}\n\n"
+                f"# Last response\n"
+                f"{response}"
                 )
         print(prompt)
 
         result = completion.prompt([prompt])
-        print("RESULT: " + result)
+        print("\n=> RESULT: " + result + "\n")
+
+        inventory, response = handle_result(result, inventory, context)
 
         lastActions += result + "\n"
 
         i += 1
+        input()
 
 
 if __name__ == "__main__":
