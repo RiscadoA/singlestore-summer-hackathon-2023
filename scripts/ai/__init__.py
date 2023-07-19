@@ -7,10 +7,11 @@ from .database import Database
 from .prompt import Prompt
 
 class AIController(Controller):
-    def __init__(self, db: Database, prompt: Prompt, goal: str):
+    def __init__(self, db: Database, prompt: Prompt, goal: str, flag: list[bool]):
         self.db = db
         self.prompt = prompt
         self.goal = goal
+        self.flag = flag
 
         self.tasks = [goal]
         self.previous_task = None
@@ -38,8 +39,9 @@ class AIController(Controller):
 
         return self.prompt.execute(context, inventory, task)
 
-    def finish(self):
-        logging.info(f"'{self.character_id}'s goal '{self.goal}' fulfilled!")
+    def exhausted(self, action: Action):
+        logging.info(f"'{self.character_id}' exhausted all tasks but goal '{self.goal}' was not fulfilled!")
+        self.fix(self.goal, action, "No more tasks to execute, but goal was not fulfilled!")
 
     def next_action(self, error: str = "") -> Action:
         if error:
@@ -53,6 +55,11 @@ class AIController(Controller):
             self.previous_task = task
             self.previous_action = action
             return action
-        else:
-            self.finish()
+        elif self.flag[0]:
+            logging.info(f"'{self.character_id}'s goal '{self.goal}' fulfilled!")
             return Idle()
+        else:
+            assert self.previous_action is not None
+            self.exhausted(self.previous_action)
+            return Idle(True)
+
