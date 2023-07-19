@@ -1,18 +1,19 @@
-import levels
-import os
 import dotenv
+import levels
+import openai
+import os
 
-from ai.database import DumbDatabase
+from ai.database import Database, DumbDatabase
 from ai.prompt import HumanPrompt, OpenAIPrompt
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
     level = os.getenv("LEVEL", "pickup_and_open")
     db = os.getenv("DATABASE", "s2")
-    prompt = os.getenv("PROMPT", "openai")
+    prompt = os.getenv("PROMPT_SOURCE", "openai")
 
     if db == "s2":
-        raise NotImplementedError("SingleStore database not implemented yet")
+        db = Database()
     elif db == "dumb":
         db = DumbDatabase()
     else:
