@@ -107,21 +107,41 @@ class OpenAIPrompt(Prompt):
             assert False, f"Unsupported action type {type(action)}"
 
         if exhausted:
-            goal = f"Your goal is '{task}'."
+            goal = f"""
+                Your goal is '{task}'. Decompose the goal into specific actions.
+            """
         else:
-            goal = f"Your goal right now is '{task}', which you previously tried to achieve with the action '{action_str}' and failed with the error message '{error}'."
+            goal = f"""
+                Your goal right now is '{task}', which you previously tried to achieve with the action '{action_str}' and
+                failed with the error message '{error}'. Decompose the failed task into smaller tasks or correct it. 
+            """
 
         newline = "\n"
-        prompt = self.sanitize(f"""
-            You are a character in a world.
-            {newline.join(context)}
-            You have an inventory, which contains the following items: {", ".join(inventory)}.
-            {goal}
-            Decompose the failed task into smaller tasks or correct it. Enter new tasks, one per line., without any styling, formatting, numbering or headers.
-            There are two possible actions:
-            1. walking to a target
-            2. interacting with a target using an item from your inventory
-        """)
+        if exhausted:
+            prompt = self.sanitize(f'''
+                You are a character in a world. Decompose the goal '{task}' into one or more specific achievable actions, one per line, without any styling, formatting, numbering or headers.
+                There are two possible questions: walking to a target, or interacting with a target using an item from your inventory.
+                Use the information below to decide which actions to use:
+                
+                Information about the world:
+                """
+                {newline.join(context)}
+                You have an inventory, which contains the following items: {", ".join(inventory)}.
+                """
+            ''')
+        else:
+            prompt = self.sanitize(f'''
+                You are a character in a world. You tried to execute '{task}' but failed with the message '{error}'.
+                Decompose the given goal into specific achievable actions, one per line, without any styling, formatting, numbering or headers.
+                There are two possible questions: walking to a target, or interacting with a target using an item from your inventory.
+                Use the information below to decide which actions to use:
+                
+                Information about the world:
+                """
+                {newline.join(context)}
+                You have an inventory, which contains the following items: {", ".join(inventory)}.
+                """
+            ''')
 
         print()
         print("-------- OpenAI fix prompt --------")
@@ -131,12 +151,13 @@ class OpenAIPrompt(Prompt):
         if exhausted:
             result = openai.ChatCompletion.create(
                 model=self.model,
+                temperature=0.5,
                 messages=[{"role": "system", "content": prompt}])
         else:
             result = openai.ChatCompletion.create(
                 model=self.model,
-                messages=[{"role": "system", "content": prompt}],
-                functions=self.FUNCTIONS)
+                temperature=0.5,
+                messages=[{"role": "system", "content": prompt}])
         result = result["choices"][0]["message"]["content"] # type: ignore
 
         print()
@@ -150,14 +171,17 @@ class OpenAIPrompt(Prompt):
     def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
         
         newline = "\n"
-        prompt = self.sanitize(f"""
-            You are a character in a world. Here is some context about the world:
+        prompt = self.sanitize(f'''
+            You are a character in a world. Your goal is '{task}'. Instead of answering with text, you should call the
+            functions walk and interact to achieve your goal.
+            Use the information below to decide which function to call:
+            
+            Information about the world:
+            """
             {newline.join(context)}
             You have an inventory, which contains the following items: {", ".join(inventory)}.
-            ---
-            Your goal right now is '{task}'. Do not answer by text. Instead, call the functions walk and interact to achieve your goal.
-            To perform any kind of interaction with the world other than walking, you should use interact instead of walk.
-        """)
+            """
+        ''')
 
         print()
         print("-------- OpenAI execute prompt --------")
@@ -166,6 +190,7 @@ class OpenAIPrompt(Prompt):
 
         result = openai.ChatCompletion.create(
             model=self.model,
+            temperature=0,
             messages=[{"role": "system", "content": prompt}],
             functions=self.FUNCTIONS)
         result = result["choices"][0]["message"] # type: ignore
