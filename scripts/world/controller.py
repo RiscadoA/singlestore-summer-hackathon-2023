@@ -3,8 +3,7 @@ from typing import Optional
 
 from .action import Action, Idle, Walk, Interact, Ask
 from console import Console
-from scripts.state import State
-
+from state import State
 
 class Controller:
     def prepare(self, world, character_id: str):
@@ -21,14 +20,12 @@ class Controller:
         """Called when another character asks a question. Should return an answer, or empty string if asker should wait another turn"""
         raise NotImplementedError()
 
-
 class BlankController(Controller):
     def next_action(self, error: str = "") -> Action:
         return Idle()
 
     def answer(self, question: str) -> str:
         return "I don't like talking..."
-
 
 class HumanController(Controller):
     def __init__(self, console: Console):
@@ -82,7 +79,6 @@ class HumanController(Controller):
             return ""
         self.answering = False
         return answer
-
 
 class AIController(Controller):
     def __init__(self, console: Console, state: State):
