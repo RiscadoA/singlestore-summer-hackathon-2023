@@ -1,6 +1,6 @@
 from app import App
 from interactions import Open, PickUp, Give
-from world import HumanController, BlankController
+from world import HumanController, ScriptedController, Walk, Ask
 
 def example1() -> App:
     app = App((32, 32))
@@ -41,9 +41,12 @@ def example1() -> App:
     app.place_decor("boulder", (7, 18))
 
     # Add a player character, with a hand
-    app.add_character("red", BlankController(), (3, 0))
-    app.add_character("green", BlankController(), (12, 21))
-    app.add_character("blue", BlankController(), (27, 24))
+    app.add_character("red", ScriptedController(), (3, 0))
+    app.add_character("green", ScriptedController([
+        Walk("blue"),
+        Ask("blue", "Hi"),
+    ]), (12, 21))
+    app.add_character("blue", ScriptedController(), (27, 24))
     app.add_character("guy", HumanController(app.console), (0, 2), {"hand"})
 
     # Add a key and a goal

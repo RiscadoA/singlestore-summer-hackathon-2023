@@ -3,9 +3,9 @@ from typing import Optional
 from .interaction import Interaction
 from .object import ObjectType, Object
 from .character import Character, Direction
-from .action import Action, Idle, Walk, Interact
+from .action import Action, Idle, Walk, Interact, Ask
 from .navigator import Navigator
-from .controller import Controller, BlankController, HumanController
+from .controller import Controller, ScriptedController, HumanController, AIController
 
 class World:
     """Holds all of the state of the world"""

@@ -1,4 +1,6 @@
 import json
+import logging
+
 from typing import Optional
 
 from .action import Action, Idle, Walk, Interact, Ask
@@ -18,14 +20,21 @@ class Controller:
 
     def answer(self, question: str) -> str:
         """Called when another character asks a question. Should return an answer, or empty string if asker should wait another turn"""
-        raise NotImplementedError()
-
-class BlankController(Controller):
-    def next_action(self, error: str = "") -> Action:
-        return Idle()
-
-    def answer(self, question: str) -> str:
         return "I don't like talking..."
+
+class ScriptedController(Controller):
+    def __init__(self, actions = []):
+        self.actions = actions
+        self.index = 0
+    
+    def next_action(self, error: str = "") -> Action:
+        if error:
+            logging.error(error)
+        if self.index >= len(self.actions):
+            return Idle()
+        action = self.actions[self.index]
+        self.index += 1
+        return action
 
 class HumanController(Controller):
     def __init__(self, console: Console):
@@ -120,6 +129,3 @@ class AIController(Controller):
         self.failed = True
         return Idle(True)
 
-    def answer(self, question: str) -> str:
-        """Called when another character asks a question. Should return an answer, or empty string if asker should wait another turn"""
-        raise NotImplementedError()
