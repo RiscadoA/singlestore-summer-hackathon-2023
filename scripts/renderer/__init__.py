@@ -13,6 +13,9 @@ FONT_PATH = "assets/font/simple.json"
 CHARACTER_PATHS = {
     "blank": "assets/characters/blank.png",
     "guy": "assets/characters/guy.png",
+    "red": "assets/characters/red.png",
+    "green": "assets/characters/green.png",
+    "blue": "assets/characters/blue.png",
 }
 
 class RendererCharacter:

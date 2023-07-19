@@ -41,7 +41,9 @@ def example1() -> App:
     app.place_decor("boulder", (7, 18))
 
     # Add a player character, with a hand
-    app.add_character("npc", BlankController(), (3, 0))
+    app.add_character("red", BlankController(), (3, 0))
+    app.add_character("green", BlankController(), (12, 21))
+    app.add_character("blue", BlankController(), (27, 24))
     app.add_character("guy", HumanController(app.console), (0, 2), {"hand"})
 
     # Add a key and a goal
