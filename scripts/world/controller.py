@@ -1,8 +1,9 @@
 import json
 from typing import Optional
 
-from console import Console
 from .action import Action, Idle, Walk, Interact, Ask
+from console import Console
+from scripts.state import State
 
 
 class Controller:
@@ -111,10 +112,10 @@ class AIController(Controller):
             elif function_name == "move":
                 return Walk(function_args.get("obj"))
             elif function_name == "pickup":
-                # TODO
-                raise NotImplementedError()
+                return Interact("hand", function_args.get("obj"))
 
-        # # TODO this will be removed (?)
+        # TODO we need to see what to do with the response, and when.
+        # we need to update state
         # inventory, response = handle_result(result["message"], inventory, context)
 
         # last_actions += result + "\n"
