@@ -41,9 +41,8 @@ def example1() -> App:
     app.place_decor("boulder", (7, 18))
 
     # Add a player character, with a hand
-    app.add_character("red", ScriptedController(), (3, 0))
+    app.add_character("red", ScriptedController(), (19, 1))
     app.add_character("green", ScriptedController([
-        Walk("blue"),
         Ask("blue", "Hi"),
     ]), (12, 21))
     app.add_character("blue", ScriptedController(), (27, 24))

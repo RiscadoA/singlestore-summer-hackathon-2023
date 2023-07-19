@@ -3,7 +3,7 @@ from typing import Optional
 from .interaction import Interaction
 from .object import ObjectType, Object
 from .character import Character, Direction
-from .action import Action, Idle, Walk, Interact, Ask
+from .action import Action, Idle, Walk, Interact, Ask, Answer
 from .navigator import Navigator
 from .controller import Controller, ScriptedController, HumanController, AIController
 

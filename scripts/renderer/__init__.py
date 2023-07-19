@@ -1,6 +1,6 @@
 import pygame
 
-from world import World, Character, Walk, Object
+from world import World, Character, Idle, Walk, Ask, Answer, Object
 from console import Console
 
 from .tiles import TileLocator, Layers
@@ -17,24 +17,49 @@ CHARACTER_PATHS = {
     "green": "assets/characters/green.png",
     "blue": "assets/characters/blue.png",
 }
+OBJECTS_PATH = "assets/tiles/objects.png"
+BUBBLES_PATH = "assets/tiles/bubbles.json"
 
 class RendererCharacter:
     """Responsible for rendering a character"""
 
-    def __init__(self, tile_size: tuple[int, int], character: Character, animations: AnimationSet):
+    def __init__(self, tile_size: tuple[int, int], character: Character, walk: AnimationSet, bubbles: AnimationSet):
         self.tile_size = tile_size
         self.character = character
-        self.animations = animations
-        self.position = character.animated_position
+        self.walk = walk
+        self.bubbles = bubbles
 
+        self.position = character.animated_position
         self.player = AnimationPlayer()
+        self.bubble = AnimationPlayer()
+        self.bubble_timer = 0
+    
+    def show_bubble(self, bubble: str, time: float):
+        if self.bubble.animation == self.bubbles[bubble]:
+            self.bubble_timer = time
+        elif self.bubble_timer <= 0:
+            self.bubble.play(self.bubbles[bubble])
 
     def tick(self, delta_t: float):
         if isinstance(self.character.action, Walk):
-            if self.player.animation != self.animations[self.character.animated_direction]:
-                self.player.play(self.animations[self.character.animated_direction])
-        elif self.player.is_playing():
-            self.player.stop()
+            if self.player.animation != self.walk[self.character.animated_direction]:
+                self.player.play(self.walk[self.character.animated_direction])
+        else:
+            if self.player.is_playing():
+                self.player.stop()
+
+            if isinstance(self.character.action, Ask):
+                self.show_bubble("ask", 1)
+            elif isinstance(self.character.action, Answer):
+                self.show_bubble("answer", 1)
+            elif isinstance(self.character.action, Idle) and self.character.action.finish:
+                self.show_bubble("think", 0.2)
+
+        if self.bubble_timer > 0:
+            self.bubble.update(4 * delta_t)
+            self.bubble_timer -= delta_t
+            if self.bubble_timer <= 0:
+                self.bubble.stop()
 
         self.position = self.character.animated_position
         self.player.update(1.5 * Walk.SPEED * delta_t)
@@ -44,7 +69,11 @@ class RendererCharacter:
         if self.player.is_playing():
             surface.blit(self.player.get_image(), position)
         else:
-            surface.blit(self.animations[self.character.animated_direction][0], position)
+            surface.blit(self.walk[self.character.animated_direction][0], position)
+        
+        if self.bubble.is_playing():
+            bubble_position = (position[0] + 1, position[1] - self.tile_size[1] * 0.4)
+            surface.blit(self.bubble.get_image(), bubble_position)
 
 class Renderer:
     def __init__(self, world: World, console: Console):
@@ -56,6 +85,7 @@ class Renderer:
         for character_id, path in CHARACTER_PATHS.items():
             self.character_animations[character_id] = AnimationSet.load(pygame.image.load(path).convert_alpha(), WALK_PATH)            
         self.font = Font(FONT_PATH)
+        self.bubbles = AnimationSet.load(pygame.image.load(OBJECTS_PATH).convert_alpha(), BUBBLES_PATH)
 
         air_x, air_y, _, _ = self.tile_locator["air"]
         self.layers = Layers(self.tile_locator.tileset, world.size, (air_x, air_y))
@@ -69,14 +99,15 @@ class Renderer:
         for character_id in self.world.characters:
             if character_id not in self.characters:
                 if character_id in self.character_animations:
-                    animations = self.character_animations[character_id]
+                    walk = self.character_animations[character_id]
                 else:
-                    animations = self.character_animations["blank"]
+                    walk = self.character_animations["blank"]
 
                 self.characters[character_id] = RendererCharacter(
                     self.tile_locator.tileset.tile_size,
                     self.world.characters[character_id],
-                    animations)
+                    walk,
+                    self.bubbles)
             self.characters[character_id].tick(delta_t)
 
         # Update the object tilemap, if necessary
@@ -98,7 +129,7 @@ class Renderer:
         surface.blit(self.layers.ground.get_image(), (0, 0))
         surface.blit(self.layers.objects.get_image(), (0, 0))
 
-        for character in self.characters.values():
+        for character in sorted(self.characters.values(), key=lambda c: c.position[1]):
             character.render(surface)
 
         if self.console.display:
