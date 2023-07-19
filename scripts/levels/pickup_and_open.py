@@ -1,11 +1,8 @@
 from app import App
-from state import State
-from vector.embedding import EmbeddingTools
-from vector.completion import CompletionTools
-from interactions import Open, PickUp, Give
-from world import HumanController, ScriptedController, AIController, Walk, Ask
+from interactions import Open, PickUp
+from ai import Database, Prompt, AIController
 
-def app(embedding: EmbeddingTools, completion: CompletionTools) -> App:
+def app(db: Database, prompt: Prompt) -> App:
     app = App((32, 32))
 
     # Register some object types
@@ -44,34 +41,7 @@ def app(embedding: EmbeddingTools, completion: CompletionTools) -> App:
     app.add_object("key", "key", (31, 2))
     app.add_object("goal", "goal", (15, 10))
 
-    # Create the state to put in the controllers
-    app_context = app.get_context()
-
-    inventory = [
-    ]
-
-    rules = (
-        "trees can be chopped down with axes and drop wood\n"
-    )
-    for rule in app_context["Rules"]:
-        rules += rule + "\n"
-
-    objects = ""
-    for obj in app_context["Objects"]:
-        objects += obj + "\n"
-
-    context = (
-        f"there are trees 'tree'\n"
-        f"you have the following items: "
-    )
-
-    goal = "eat food"
-
-    state = State(embedding, completion, inventory, rules, objects, context, goal)
-    state.generate_embeddings_from_rules()
-    state.put_items_in_db()
-
     # Add an AI character, with a hand
-    app.add_character("red", AIController(app.console, state), (19, 1), {"hand"})
+    app.add_character("red", AIController(db, prompt, "move to the goal"), (19, 1), {"hand"})
 
     return app

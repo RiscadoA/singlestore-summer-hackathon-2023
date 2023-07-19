@@ -5,7 +5,7 @@ from .object import ObjectType, Object
 from .character import Character, Direction
 from .action import Action, Idle, Walk, Interact, Ask, Answer
 from .navigator import Navigator
-from .controller import Controller, ScriptedController, HumanController, AIController
+from .controller import Controller, ScriptedController, HumanController
 
 class World:
     """Holds all of the state of the world"""

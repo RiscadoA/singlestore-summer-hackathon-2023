@@ -1,28 +1,8 @@
 from app import App
-from vector.connector import DatabaseConnector
-from vector.embedding import EmbeddingTools
-from vector.completion import CompletionTools
+from ai import Database, Prompt
 
-def startup(conn: DatabaseConnector):
-    # create table
-    conn.run_query(
-        """
-        CREATE TABLE IF NOT EXISTS info(
-            id INT not null PRIMARY KEY,
-            context TEXT,
-            vector blob
-        );
-        """
-    )
-
-    # delete all elements from the table
-    conn.run_query("DELETE FROM info;")
-
-def app(name: str) -> App:
-    """Starts the game"""
-    conn = DatabaseConnector()
-    embedding = EmbeddingTools(conn)
-    completion = CompletionTools()
-    startup(conn)
-
-    return __import__(name, globals(), locals(), level=1).app(embedding, completion)
+def app(name: str, db: Database, prompt: Prompt) -> App:
+    """Returns the app for the given level"""
+    app = __import__(name, globals(), locals(), level=1).app(db, prompt)
+    db.fill(app.world)
+    return app

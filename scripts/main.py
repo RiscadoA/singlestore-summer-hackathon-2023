@@ -1,15 +1,13 @@
-import argparse
 import levels
-import openai
 import os
-from dotenv import load_dotenv
+import dotenv
 
-load_dotenv()
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from ai.database import DumbDatabase
+from ai.prompt import HumanPrompt
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Starts the game")
-    parser.add_argument("level", nargs="?", default="pickup_and_open", help="The level to start")
-    args = parser.parse_args()
-    levels.app(args.level).run()
+    dotenv.load_dotenv()
+    level = os.getenv("LEVEL", "pickup_and_open")
+    db = DumbDatabase()
+    prompt = HumanPrompt()
+    levels.app(level, db, prompt).run()

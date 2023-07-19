@@ -71,31 +71,7 @@ class App:
         self.renderer.render(self.screen)
         pygame.display.flip()
 
-    def get_context(self) -> dict[str, list[str]]:
-        ret = {}
-        ret["Characters"] = self.world.characters.keys()
-        ret["Rules"] = list(map(lambda x: x.rule(), self.world.interactions.values()))
-        ret["Objects"] = []
-        for obj_id, obj in self.world.objects.items():
-            ret["Objects"] += [f"'{obj.type}' with id '{obj_id}'",]
-
-        return ret
-
     def run(self):
-        context = self.get_context()
-        print()
-        print("Rules:")
-        for interaction in context["Rules"]:
-            print(interaction)
-        print()
-        print("Objects:")
-        for el in context["Objects"]:
-            print(el)
-        print()
-        print("Characters:")
-        for char_id in context["Characters"]:
-            print(f"'{char_id}'")
-
         last_t = pygame.time.get_ticks()
         while True:
             self.poll_events()
