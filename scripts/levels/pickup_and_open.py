@@ -72,6 +72,6 @@ def app(embedding: EmbeddingTools, completion: CompletionTools) -> App:
     state.put_items_in_db()
 
     # Add an AI character, with a hand
-    app.add_character("red", ScriptedController(), (19, 1), {"hand"})
+    app.add_character("red", AIController(app.console, state), (19, 1), {"hand"})
 
     return app
