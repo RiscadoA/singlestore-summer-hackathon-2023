@@ -1,4 +1,5 @@
 import pygame
+import logging
 
 from typing import Optional
 
@@ -11,6 +12,7 @@ class App:
         self.size = size
 
         pygame.init()
+        logging.basicConfig(level=logging.DEBUG)
 
         self.console = Console()
         self.world = World(size)

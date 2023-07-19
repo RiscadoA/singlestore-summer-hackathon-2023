@@ -13,6 +13,9 @@ class Action:
     def tick(self, delta_t: float) -> bool:
         """Updates the action, returning whether it is complete. Error should be set on failure"""
         raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
     
 class Idle(Action):
     """An action that does nothing"""
@@ -23,6 +26,9 @@ class Idle(Action):
 
     def tick(self, delta_t: float) -> bool:
         return self.finish
+
+    def __repr__(self):
+        return f"Idle(finish={self.finish})"
 
 class Walk(Action):
     """An action that moves the character along a given path"""
@@ -71,6 +77,9 @@ class Walk(Action):
 
         return not self.path
 
+    def __repr__(self):
+        return f"Walk(target={self.target})"
+
 class Interact(Action):
     """An action that makes the character interact with an object"""
 
@@ -113,6 +122,9 @@ class Interact(Action):
         if self.interaction is not None:
             self.error = self.interaction.interact(self.world, self.character_id, self.item_id, self.target_id)
         return True
+
+    def __repr__(self):
+        return f"Interact(item={self.item_id}, target={self.target_id})"
 
 class Ask(Action):
     """An action that makes the character ask another character a question"""
@@ -157,6 +169,9 @@ class Ask(Action):
             # We have asked the question, wait for an answer
             return False
 
+    def __repr__(self):
+        return f"Ask(target={self.target_id}, question={self.question})"
+
 class Answer(Action):
     """Action set automatically by a character to answer a question"""
     def __init__(self, previous: Action):
@@ -169,3 +184,6 @@ class Answer(Action):
         if self.question:
             self.answer = self.character.controller.answer(self.question)
         return False
+
+    def __repr__(self):
+        return f"Answer(previous={self.previous})"

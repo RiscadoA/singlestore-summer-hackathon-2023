@@ -26,7 +26,7 @@ class World:
     def add_character(self, id: str, controller: Controller, position: tuple[int, int], inventory: set[str] = set()):
         """Adds a new character to the world"""
         assert id not in self.characters, f"Character with id {id} already exists"
-        self.characters[id] = Character(controller, position, inventory)
+        self.characters[id] = Character(id, controller, position, inventory)
         controller.prepare(self, id)
 
     def add_object_type(self, type: str, size: tuple[int, int], interaction: Optional[Interaction] = None, occlude=True):
