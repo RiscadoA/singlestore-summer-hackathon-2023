@@ -23,7 +23,7 @@ class CompletionTools:
                         "name": "move",
                         "description": "move the agent to other position (near a given object)",
                         "parameters": {
-                            "type": "obj",
+                            "type": "object",
                             "properties": {
                                 "object": {
                                     "type": "string",
