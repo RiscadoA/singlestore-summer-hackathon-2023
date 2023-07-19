@@ -32,28 +32,34 @@ class RendererCharacter:
         self.position = character.animated_position
         self.player = AnimationPlayer()
         self.bubble = AnimationPlayer()
-        self.bubble_timer = 0
+        self.bubble_timer = 0.0
     
     def show_bubble(self, bubble: str, time: float):
         if self.bubble.animation == self.bubbles[bubble]:
             self.bubble_timer = time
         elif self.bubble_timer <= 0:
             self.bubble.play(self.bubbles[bubble])
+            self.bubble_timer = time
 
     def tick(self, delta_t: float):
-        if isinstance(self.character.action, Walk):
+        is_ask_walk = False
+        if isinstance(self.character.action, Ask) and not self.character.action.error:
+            assert self.character.action.target is not None
+            if isinstance(self.character.action.target.action, Answer):
+                is_ask_walk = not self.character.action.target.action.question
+        if isinstance(self.character.action, Walk) or is_ask_walk:
             if self.player.animation != self.walk[self.character.animated_direction]:
                 self.player.play(self.walk[self.character.animated_direction])
         else:
             if self.player.is_playing():
                 self.player.stop()
 
-            if isinstance(self.character.action, Ask):
-                self.show_bubble("ask", 1)
-            elif isinstance(self.character.action, Answer):
-                self.show_bubble("answer", 1)
-            elif isinstance(self.character.action, Idle) and self.character.action.finish:
-                self.show_bubble("think", 0.2)
+        if isinstance(self.character.action, Ask):
+            self.show_bubble("ask", 1.0)
+        elif isinstance(self.character.action, Answer):
+            self.show_bubble("answer", 1.0)
+        elif isinstance(self.character.action, Idle) and self.character.action.finish:
+            self.show_bubble("think", 0.2)
 
         if self.bubble_timer > 0:
             self.bubble.update(4 * delta_t)

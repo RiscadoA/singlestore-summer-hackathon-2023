@@ -137,6 +137,10 @@ class Ask(Action):
     def prepare(self, world, character_id: str):
         super().prepare(world, character_id)
 
+        if not self.question:
+            self.error = "Cannot ask an empty question"
+            return
+
         self.target = None
         if self.target_id not in world.characters:
             self.error = f"Cannot ask '{self.target_id}' a question because they do not exist"
@@ -150,8 +154,8 @@ class Ask(Action):
         self.walk.prepare(world, character_id)
 
     def tick(self, delta_t: float) -> bool:
-        if self.target is None:
-            return True        
+        if self.error or self.target is None:
+            return True
 
         if self.target.action.answer:
             # We got an answer, restore the target's previous action
@@ -161,7 +165,8 @@ class Ask(Action):
         elif not self.target.action.question:
             # We still need to ask the question, walk to the target
             if self.walk.tick(delta_t):
-                if self.error:
+                if self.walk.error:
+                    self.error = self.walk.error
                     self.target.action = self.target.action.previous
                     return True
                 self.target.action.question = self.question
