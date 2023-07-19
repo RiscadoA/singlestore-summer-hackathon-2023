@@ -37,8 +37,8 @@ def app() -> App:
     app.place_decor("boulder", (29, 11))
     app.place_decor("boulder", (7, 18))
 
-    # Add a player character, with a hand
-    app.add_character("red", ScriptedController(), (19, 1))
+    # Add an AI character, with a hand
+    app.add_character("red", ScriptedController(), (19, 1), {"hand"})
 
     # Add a key and a goal
     app.add_object("key", "key", (31, 2))
