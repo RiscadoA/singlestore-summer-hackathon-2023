@@ -1,3 +1,5 @@
+import logging
+
 from .direction import Direction
 
 class Action:
@@ -189,6 +191,7 @@ class Answer(Action):
         # This action never completes by itself - Ask switches back to the previous action when it is done
         if self.question:
             self.answer = self.character.controller.answer(self.question)
+            logging.debug(f"'{self.character_id}' answered '{self.question}' with '{self.answer}'")
         return False
 
     def __repr__(self):
