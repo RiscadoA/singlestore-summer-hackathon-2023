@@ -1,7 +1,9 @@
+import json
 from typing import Optional
-from console import Console
 
+from console import Console
 from .action import Action, Idle, Walk, Interact, Ask
+
 
 class Controller:
     def prepare(self, world, character_id: str):
@@ -17,6 +19,7 @@ class Controller:
     def answer(self, question: str) -> str:
         """Called when another character asks a question. Should return an answer, or empty string if asker should wait another turn"""
         raise NotImplementedError()
+
 
 class BlankController(Controller):
     def next_action(self, error: str = "") -> Action:
@@ -38,7 +41,7 @@ class HumanController(Controller):
         if error:
             self.console.print(error)
             self.ask = None
-        
+
         if not self.console.waiting():
             if self.failed:
                 self.console.print("Invalid command")
@@ -78,3 +81,48 @@ class HumanController(Controller):
             return ""
         self.answering = False
         return answer
+
+
+class AIController(Controller):
+    def __init__(self, console: Console, state: State):
+        self.console = console
+        self.state = state
+        self.failed = False
+        self.ask: Optional[Ask] = None
+        self.answering = False
+
+    def next_action(self, error: str = "") -> Action:
+        """Called with the error message of the previous action if it failed, and returns the next action"""
+        if error:
+            self.console.print(error)
+            self.ask = None
+
+        prompt = None  # TODO
+
+        result = self.state.query_ai(prompt)
+        print("\n=> RESULT: " + result["message"] + "\n")
+
+        if result.get("function_call"):
+            # TODO the JSON response may not always be valid; be sure to handle errors
+            function_name = result["function_call"]["name"]
+            function_args = json.loads(result["function_call"]["arguments"])
+            if function_name == "interact":
+                return Interact(function_args.get("obj1"), function_args.get("obj2"))
+            elif function_name == "move":
+                return Walk(function_args.get("obj"))
+            elif function_name == "pickup":
+                # TODO
+                raise NotImplementedError()
+
+        # # TODO this will be removed (?)
+        # inventory, response = handle_result(result["message"], inventory, context)
+
+        # last_actions += result + "\n"
+        # self.state.update_last_actions(last_actions)
+
+        self.failed = True
+        return Idle(True)
+
+    def answer(self, question: str) -> str:
+        """Called when another character asks a question. Should return an answer, or empty string if asker should wait another turn"""
+        raise NotImplementedError()
