@@ -190,7 +190,7 @@ class OpenAIPrompt(Prompt):
 
         result = openai.ChatCompletion.create(
             model=self.model,
-            temperature=0,
+            temperature=0.0,
             messages=[{"role": "system", "content": prompt}],
             functions=self.FUNCTIONS)
         result = result["choices"][0]["message"] # type: ignore
