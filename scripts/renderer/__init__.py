@@ -9,8 +9,11 @@ from .font import Font
 
 TILES_PATH = "assets/tiles/overworld.json"
 WALK_PATH = "assets/characters/walk.json"
-GUY_PATH = "assets/characters/guy.png"
 FONT_PATH = "assets/font/simple.json"
+CHARACTER_PATHS = {
+    "blank": "assets/characters/blank.png",
+    "guy": "assets/characters/guy.png",
+}
 
 class RendererCharacter:
     """Responsible for rendering a character"""
@@ -46,7 +49,9 @@ class Renderer:
         self.console = console
 
         self.tile_locator = TileLocator.load(TILES_PATH)
-        self.character_animations = AnimationSet.load(pygame.image.load(GUY_PATH).convert_alpha(), WALK_PATH)
+        self.character_animations = {}
+        for character_id, path in CHARACTER_PATHS.items():
+            self.character_animations[character_id] = AnimationSet.load(pygame.image.load(path).convert_alpha(), WALK_PATH)            
         self.font = Font(FONT_PATH)
 
         air_x, air_y, _, _ = self.tile_locator["air"]
@@ -60,10 +65,15 @@ class Renderer:
         # Update the state of the rendered characters
         for character_id in self.world.characters:
             if character_id not in self.characters:
+                if character_id in self.character_animations:
+                    animations = self.character_animations[character_id]
+                else:
+                    animations = self.character_animations["blank"]
+
                 self.characters[character_id] = RendererCharacter(
                     self.tile_locator.tileset.tile_size,
                     self.world.characters[character_id],
-                    self.character_animations)
+                    animations)
             self.characters[character_id].tick(delta_t)
 
         # Update the object tilemap, if necessary

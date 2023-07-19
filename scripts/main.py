@@ -42,7 +42,7 @@ def example1() -> App:
 
     # Add a player character, with a hand
     app.add_character("npc", BlankController(), (3, 0))
-    app.add_character("player", HumanController(app.console), (0, 2), {"hand"})
+    app.add_character("guy", HumanController(app.console), (0, 2), {"hand"})
 
     # Add a key and a goal
     app.add_object("key", "key", (31, 2))
