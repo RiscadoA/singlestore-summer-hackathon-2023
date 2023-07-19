@@ -7,7 +7,7 @@ class Open(Interaction):
         self.key_id = key_id
 
     def rule(self) -> str:
-        return f"Objects of type '{self.type_id}' can be opened with a '{self.key_id}'."
+        return f"You can open a '{self.type_id}' using a '{self.key_id}'."
 
     def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
         if target_id not in world.objects or world.objects[target_id].type != self.type_id:

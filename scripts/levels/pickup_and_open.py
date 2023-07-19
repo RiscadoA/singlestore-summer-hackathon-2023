@@ -1,13 +1,15 @@
 from app import App
-from interactions import Open, PickUp
+from interactions import Open, PickUp, Win
 from ai import Database, Prompt, AIController
 
 def app(db: Database, prompt: Prompt) -> App:
     app = App((32, 32))
+    flag = [False]
 
     # Register some object types
-    app.add_object_type("door", Open("door", "key"))
+    app.add_object_type("goal", Win("hand", "goal", flag))
     app.add_object_type("key", PickUp("key", "hand"), occlude=False)
+    app.add_object_type("door", Open("door", "key"))
 
     # Make a cliff from the left to the right of the map, with a door in the middle
     for i in range(0, 15):
@@ -42,6 +44,6 @@ def app(db: Database, prompt: Prompt) -> App:
     app.add_object("goal", "goal", (15, 10))
 
     # Add an AI character, with a hand
-    app.add_character("red", AIController(db, prompt, "move to the goal"), (19, 1), {"hand"})
+    app.add_character("red", AIController(db, prompt, "win", flag), (19, 1), {"hand"})
 
     return app

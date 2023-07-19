@@ -143,6 +143,7 @@ class OpenAIPrompt(Prompt):
         print("-------- OpenAI fix response --------")
         print(result)
         print()
+        input()
 
         return result.split("\n")
 
@@ -150,9 +151,10 @@ class OpenAIPrompt(Prompt):
         
         newline = "\n"
         prompt = self.sanitize(f"""
-            You are a character in a world.
+            You are a character in a world. Here is some context about the world:
             {newline.join(context)}
             You have an inventory, which contains the following items: {", ".join(inventory)}.
+            ---
             Your goal right now is '{task}'. Do not answer by text. Instead, call the functions walk and interact to achieve your goal.
             To perform any kind of interaction with the world other than walking, you should use interact instead of walk.
         """)
@@ -172,6 +174,7 @@ class OpenAIPrompt(Prompt):
         print("-------- OpenAI execute response --------")
         print(result)
         print()
+        input()
 
         if "function_call" not in result:
             raise ValueError(f"OpenAI returned an invalid response without a function call: {result}")
