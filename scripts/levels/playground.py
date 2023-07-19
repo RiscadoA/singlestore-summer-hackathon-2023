@@ -1,8 +1,11 @@
 from app import App
+from state import State
+from vector.embedding import EmbeddingTools
+from vector.completion import CompletionTools
 from interactions import Open, PickUp, Give
-from world import HumanController, ScriptedController, Walk, Ask
+from world import HumanController, ScriptedController, AIController, Walk, Ask
 
-def app() -> App:
+def app(embedding: EmbeddingTools, completion: CompletionTools) -> App:
     app = App((32, 32))
 
     # Allow characters to give stuff to each other (but not their hands)
@@ -40,16 +43,45 @@ def app() -> App:
     app.place_decor("boulder", (29, 11))
     app.place_decor("boulder", (7, 18))
 
-    # Add a player character, with a hand
-    app.add_character("red", ScriptedController(), (19, 1))
-    app.add_character("green", ScriptedController([
-        Ask("blue", "Hi"),
-    ]), (12, 21))
-    app.add_character("blue", ScriptedController(), (27, 24))
-    app.add_character("guy", HumanController(app.console), (0, 2), {"hand"})
-
     # Add a key and a goal
     app.add_object("key", "key", (31, 2))
     app.add_object("goal", "goal", (15, 10))
+
+    # Create the state to put in the controllers
+    app_context = app.get_context()
+
+    inventory = [
+    ]
+
+    rules = (
+        "trees can be chopped down with axes and drop wood\n"
+    )
+    for rule in app_context["Rules"]:
+        rules += rule + "\n"
+
+    objects = ""
+    for obj in app_context["Objects"]:
+        objects += obj + "\n"
+
+    context = (
+        f"there are trees 'tree'\n"
+        f"you have the following items: "
+    )
+
+    goal = "get to the goal"
+
+    state = State(embedding, completion, inventory, rules, objects, context, goal)
+    state.generate_embeddings_from_rules()
+    state.put_items_in_db()
+
+    # Add a player character, with a hand
+    # app.add_character("red", ScriptedController(), (3, 0))
+    # app.add_character("green", ScriptedController([
+    #     Walk("blue"),
+    #     Ask("blue", "Hi"),
+    # ]), (12, 21))
+    # app.add_character("blue", ScriptedController(), (27, 24))
+    # app.add_character("guy", HumanController(app.console), (0, 2), {"hand"})
+    app.add_character("guy", AIController(app.console, state), (0, 2), {"hand"})
 
     return app
