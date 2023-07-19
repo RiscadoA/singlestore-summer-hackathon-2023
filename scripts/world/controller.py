@@ -103,10 +103,17 @@ class AIController(Controller):
             self.console.print(error)
             self.ask = None
 
-        prompt = None  # TODO
+        # TODO If the query is being done, return Idle(true)
+        # command = self.console.accept()
+        # if command is None:
+        #     # Waiting for input
+        #     return Idle(True)
+
+        prompt = self.state.generate_prompt()
+        print(prompt)
 
         result = self.state.query_ai(prompt)
-        print("\n=> RESULT: " + result["message"] + "\n")
+        print("\n=> RESULT: " + result["content"] + "\n")
 
         if result.get("function_call"):
             # TODO the JSON response may not always be valid; be sure to handle errors

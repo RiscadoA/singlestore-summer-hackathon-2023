@@ -3,12 +3,16 @@ import os
 import tiktoken
 
 class EmbeddingTools():
-    _encoding = os.getenv("ENCODING_NAME", "cl100k_base")
-    _model = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
-
     def __init__(self, conn):
         super().__init__()
+        self._id = -1
         self._conn = conn
+        self._encoding = os.getenv("ENCODING_NAME", "cl100k_base")
+        self._model = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
+
+    def new_id(self):
+        self._id += 1
+        return self._id
 
     def clean_data(self, data):
         """Gets a string of input, splits newlines, strips whitespace, avoids empty strings"""
