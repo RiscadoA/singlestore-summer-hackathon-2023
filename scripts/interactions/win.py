@@ -11,7 +11,7 @@ class Win(Interaction):
         return f"You can win by interacting with '{self.goal_id}' using '{self.item_id}'."
 
     def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
-        if target_id not in world.objects or world.objects[target_id].type != self.item_id:
+        if target_id not in world.objects or world.objects[target_id].type != self.goal_id:
             return f"Cannot win by interacting with '{target_id}' because it is not of type '{self.goal_id}'"
         if item_id != self.item_id:
             return f"You cannot win by interacting with '{target_id}' using '{item_id}'"

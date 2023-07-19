@@ -6,7 +6,7 @@ from world import Action, Walk, Interact, Ask
 class Prompt():
     """Interface for the prompt used by the AI"""
 
-    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str) -> list[str]:
+    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool = False) -> list[str]:
         """Given the context, inventory, task, action and error message, returns a list of new tasks to replace the failed one"""
         raise NotImplementedError()
 
@@ -17,7 +17,7 @@ class Prompt():
 class HumanPrompt(Prompt):
     """Implementation of the prompt which asks the user for input"""
 
-    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str) -> list[str]:
+    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
         print(f"Context: {context}")
         print(f"Inventory: {inventory}")
         print(f"Task: {task}")
@@ -68,17 +68,17 @@ class OpenAIPrompt(Prompt):
         },
         {
             "name": "interact",
-            "description": "Use an item on your inventory to interact with an object or character",
+            "description": "Interact with an object or character using something from your inventory",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "item": {
                         "type": "string",
-                        "description": "The id of the item on your inventory to use"
+                        "description": "Id of the item on your inventory to use"
                     },
                     "target": {
                         "type": "string",
-                        "description": "The id of the object or character to interact with"
+                        "description": "Id of the object or character to interact with"
                     }
                 },
                 "required": ["item", "target"]
@@ -96,7 +96,7 @@ class OpenAIPrompt(Prompt):
             out += line.replace("\t", " ").strip() + "\n"
         return out.strip()
 
-    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str) -> list[str]:
+    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
         if isinstance(action, Walk):
             action_str = f"walk({action.target})"
         elif isinstance(action, Interact):
@@ -106,27 +106,43 @@ class OpenAIPrompt(Prompt):
         else:
             assert False, f"Unsupported action type {type(action)}"
 
+        if exhausted:
+            goal = f"Your goal is '{task}'."
+        else:
+            goal = f"Your goal right now is '{task}', which you previously tried to achieve with the action '{action_str}' and failed with the error message '{error}'."
+
         newline = "\n"
         prompt = self.sanitize(f"""
             You are a character in a world.
             {newline.join(context)}
             You have an inventory, which contains the following items: {", ".join(inventory)}.
-            Your goal is '{task}', which you previously tried to achieve with the action '{action_str}'
-            and failed with the error message '{error}'.
-            Decompose the failed task into smaller tasks or correct it. Enter new tasks, one per line. 
+            {goal}
+            Decompose the failed task into smaller tasks or correct it. Enter new tasks, one per line., without any styling, formatting, numbering or headers.
+            There are two possible actions:
+            1. walking to a target
+            2. interacting with a target using an item from your inventory
         """)
 
+        print()
         print("-------- OpenAI fix prompt --------")
         print(prompt)
-        
-        result = openai.ChatCompletion.create(
-            model=self.model,
-            messages=[{"role": "system", "content": prompt}],
-            functions=self.FUNCTIONS)
-        result = result["choices"][0]["text"] # type: ignore
+        print()
 
+        if exhausted:
+            result = openai.ChatCompletion.create(
+                model=self.model,
+                messages=[{"role": "system", "content": prompt}])
+        else:
+            result = openai.ChatCompletion.create(
+                model=self.model,
+                messages=[{"role": "system", "content": prompt}],
+                functions=self.FUNCTIONS)
+        result = result["choices"][0]["message"]["content"] # type: ignore
+
+        print()
         print("-------- OpenAI fix response --------")
         print(result)
+        print()
 
         return result.split("\n")
 
@@ -134,15 +150,17 @@ class OpenAIPrompt(Prompt):
         
         newline = "\n"
         prompt = self.sanitize(f"""
-            You are a character in a world. You should never answer by text, instead, you should
-            only call the functions walk and interact, which allow you to perform actions.
+            You are a character in a world.
             {newline.join(context)}
             You have an inventory, which contains the following items: {", ".join(inventory)}.
-            Your goal right now is '{task}'.
+            Your goal right now is '{task}'. Do not answer by text. Instead, call the functions walk and interact to achieve your goal.
+            To perform any kind of interaction with the world other than walking, you should use interact instead of walk.
         """)
 
+        print()
         print("-------- OpenAI execute prompt --------")
         print(prompt)
+        print()
 
         result = openai.ChatCompletion.create(
             model=self.model,
@@ -150,8 +168,10 @@ class OpenAIPrompt(Prompt):
             functions=self.FUNCTIONS)
         result = result["choices"][0]["message"] # type: ignore
 
+        print()
         print("-------- OpenAI execute response --------")
         print(result)
+        print()
 
         if "function_call" not in result:
             raise ValueError(f"OpenAI returned an invalid response without a function call: {result}")

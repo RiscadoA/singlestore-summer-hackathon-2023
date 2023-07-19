@@ -1,7 +1,6 @@
 import logging
 
-from typing import Optional
-from world import Controller, Action, Idle, Walk, Interact
+from world import Controller, Action, Idle
 
 from .database import Database
 from .prompt import Prompt
@@ -17,7 +16,7 @@ class AIController(Controller):
         self.previous_task = None
         self.previous_action = None
     
-    def fix(self, task: str, action: Action, error: str):
+    def fix(self, task: str, action: Action, error: str, exhausted: bool = False):
         logging.info(f"'{self.character_id}' fixing task '{task}' which was executed with '{action}', which caused the error '{error}'")
 
         context = self.db.query(task, error)
@@ -25,7 +24,7 @@ class AIController(Controller):
         logging.info(f"'{self.character_id}'s context: {context}")
         logging.info(f"'{self.character_id}'s inventory: {inventory}") 
 
-        new_tasks = self.prompt.fix(context, inventory, task, action, error)
+        new_tasks = self.prompt.fix(context, inventory, task, action, error, exhausted)
         self.tasks = new_tasks + self.tasks
         logging.info(f"'{self.character_id}'s new tasks: {self.tasks}")
 
@@ -41,7 +40,7 @@ class AIController(Controller):
 
     def exhausted(self, action: Action):
         logging.info(f"'{self.character_id}' exhausted all tasks but goal '{self.goal}' was not fulfilled!")
-        self.fix(self.goal, action, "No more tasks to execute, but goal was not fulfilled!")
+        self.fix(self.goal, action, "No more tasks to execute, but goal was not fulfilled!", True)
 
     def next_action(self, error: str = "") -> Action:
         if error:

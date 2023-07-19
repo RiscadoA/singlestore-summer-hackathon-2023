@@ -32,5 +32,5 @@ class DumbDatabase(Database):
         context = []
         context += list(map(lambda x: x.rule(), self.world.interactions.values()))
         context += list(map(lambda id, x: f"There is a '{x.type}' named '{id}'.", self.world.objects.keys(), self.world.objects.values()))
-        context += list(map(lambda id: f"There is a character named '{id}'.", self.world.characters.keys()))
+        #context += list(map(lambda id: f"There is a character named '{id}'.", self.world.characters.keys()))
         return context

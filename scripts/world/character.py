@@ -24,11 +24,11 @@ class Character:
         if self.action is None or self.action.tick(delta_t):
             if self.action is not None:
                 if self.action.error:
-                    logging.debug(f"Character '{self.id}' failed to do {self.action} with error '{self.action.error}'")
+                    logging.info(f"Character '{self.id}' failed to do {self.action} with error '{self.action.error}'")
                 elif not isinstance(self.action, Idle):
-                    logging.debug(f"Character '{self.id}' finished doing {self.action}")
+                    logging.info(f"Character '{self.id}' finished doing {self.action}")
             self.action = self.controller.next_action(self.action.error if self.action is not None else "")
             if not isinstance(self.action, Idle):
-                logging.debug(f"Character '{self.id}' is now doing {self.action}")
+                logging.info(f"Character '{self.id}' is now doing {self.action}")
             return self.action
         return None

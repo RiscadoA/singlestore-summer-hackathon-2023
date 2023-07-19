@@ -12,7 +12,7 @@ class App:
         self.size = size
 
         pygame.init()
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
 
         self.console = Console()
         self.world = World(size)
