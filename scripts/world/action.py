@@ -162,6 +162,7 @@ class Ask(Action):
             # We still need to ask the question, walk to the target
             if self.walk.tick(delta_t):
                 if self.error:
+                    self.target.action = self.target.action.previous
                     return True
                 self.target.action.question = self.question
             return False
