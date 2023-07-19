@@ -1,6 +1,6 @@
 from app import App
 from interactions import Open, PickUp
-from world import HumanController
+from world import HumanController, BlankController
 
 def example1() -> App:
     app = App((32, 32))
@@ -38,6 +38,7 @@ def example1() -> App:
     app.place_decor("boulder", (7, 18))
 
     # Add a player character, with a hand
+    app.add_character("npc", BlankController(), (3, 0))
     app.add_character("player", HumanController(app.console), (0, 2), {"hand"})
 
     # Add a key and a goal

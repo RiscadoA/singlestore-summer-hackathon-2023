@@ -5,7 +5,7 @@ from .object import ObjectType, Object
 from .character import Character, Direction
 from .action import Action, Idle, Walk, Interact
 from .navigator import Navigator
-from .controller import Controller, HumanController
+from .controller import Controller, BlankController, HumanController
 
 class World:
     """Holds all of the state of the world"""
@@ -16,7 +16,7 @@ class World:
         self.characters: dict[str, Character] = {}
         self.object_types: dict[str, ObjectType] = {}
         self.objects: dict[str, Object] = {}
-        self.navigator = Navigator(size, self.objects)
+        self.navigator = Navigator(size, self.objects, self.characters)
 
     def make_impassable(self, area: tuple[int, int, int, int]):
         """Makes the given area impassable"""

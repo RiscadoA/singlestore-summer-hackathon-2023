@@ -4,10 +4,7 @@ class Console:
     """A console that can be used to interact with the game"""
 
     def __init__(self):
-        self.display = ""
-        self.input = ""
-        self.printed = False
-        self.submitted = False
+        self.clear()
 
     def waiting(self) -> bool:
         """Returns True if the console is waiting for input, or False otherwise"""
@@ -47,3 +44,10 @@ class Console:
         if not self.submitted and self.input:
             self.input = self.input[:-1]
             self.display = self.display[:-1]
+
+    def clear(self):
+        """Clears the console"""
+        self.display = ""
+        self.input = ""
+        self.printed = False
+        self.submitted = False

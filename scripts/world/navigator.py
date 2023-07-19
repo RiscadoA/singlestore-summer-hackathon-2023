@@ -1,6 +1,7 @@
 from typing import Union, Optional
 
 from .object import Object
+from .character import Character
 
 def is_removeable(objects: dict[str, Object], occluded: str):
     if occluded not in objects:
@@ -16,9 +17,10 @@ class Node:
         self.parent: Optional[tuple[int, int]] = None
 
 class Navigator:
-    def __init__(self, size: tuple[int, int], objects: dict[str, Object]):
+    def __init__(self, size: tuple[int, int], objects: dict[str, Object], characters: dict[str, Character]):
         self.size = size
         self.objects = objects
+        self.characters = characters
 
         self.seen_objects = dict[str, tuple[int, int, int, int]]()
         self.nodes = [[Node() for _ in range(size[1])] for _ in range(size[0])]
@@ -56,8 +58,8 @@ class Navigator:
         return abs(node[0] - target[0]) + abs(node[1] - target[1])
 
     def get_path(self, origin: tuple[int, int], target: str) -> Union[str, list[tuple[int, int]]]:
-        if target not in self.objects:
-            return f"No such object '{target}'"
+        if target not in self.objects and target not in self.characters:
+            return f"No such object or character '{target}'"
         self.update_occlusion()
 
         result = self.__get_path(origin, target, lambda node: node.occluded != "" and node.occluded != target)
@@ -76,7 +78,10 @@ class Navigator:
         return f"'{target}' is unreacheable"
 
     def __get_path(self, origin: tuple[int, int], target: str, occluded_filter) -> Optional[list[tuple[int, int]]]:
-        target_pos = self.objects[target].position
+        if target not in self.objects:
+            target_pos = self.characters[target].position
+        else:
+            target_pos = self.objects[target].position
 
         open_set = [origin]
         for x in range(self.size[0]):
@@ -93,7 +98,7 @@ class Navigator:
             if current == target_pos:
                 path = []
                 while current:
-                    if not occluded_filter(self.nodes[current[0]][current[1]]) and self.nodes[current[0]][current[1]].occluded != target:
+                    if not occluded_filter(self.nodes[current[0]][current[1]]) and self.nodes[current[0]][current[1]].occluded != target and current != target_pos:
                         path.append(current)
                     current = self.nodes[current[0]][current[1]].parent
                 return path[::-1]

@@ -107,3 +107,59 @@ class Interact(Action):
         if self.interaction is not None:
             self.error = self.interaction.interact(self.world, self.character_id, self.item_id, self.target_id)
         return True
+
+class Ask(Action):
+    """An action that makes the character ask another character a question"""
+
+    def __init__(self, target_id: str, question: str):
+        self.target_id = target_id
+        self.question = question
+        self.answer = ""
+
+    def prepare(self, world, character_id: str):
+        super().prepare(world, character_id)
+
+        self.target = None
+        if self.target_id not in world.characters:
+            self.error = f"Cannot ask '{self.target_id}' a question because they do not exist"
+            return
+
+        self.target = world.characters[self.target_id]
+        self.target.action = Answer(self.target.action)
+        self.target.action.prepare(world, self.target_id)
+
+        self.walk = Walk(self.target_id)
+        self.walk.prepare(world, character_id)
+
+    def tick(self, delta_t: float) -> bool:
+        if self.target is None:
+            return True        
+
+        if self.target.action.answer:
+            # We got an answer, restore the target's previous action
+            self.answer = self.target.action.answer
+            self.target.action = self.target.action.previous
+            return True
+        elif not self.target.action.question:
+            # We still need to ask the question, walk to the target
+            if self.walk.tick(delta_t):
+                if self.error:
+                    return True
+                self.target.action.question = self.question
+            return False
+        else:
+            # We have asked the question, wait for an answer
+            return False
+
+class Answer(Action):
+    """Action set automatically by a character to answer a question"""
+    def __init__(self, previous: Action):
+        self.previous = previous
+        self.question = ""
+        self.answer = ""
+
+    def tick(self, delta_t: float) -> bool:
+        # This action never completes by itself - Ask switches back to the previous action when it is done
+        if self.question:
+            self.answer = self.character.controller.answer(self.question)
+        return False
