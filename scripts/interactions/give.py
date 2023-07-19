@@ -6,7 +6,7 @@ class Give(Interaction):
         self.disallowed_items = disallowed_items
 
     def rule(self) -> str:
-        return f"Items can be given to other characters by interacting with them"
+        return f"Items can be given to other characters by interacting with them."
 
     def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
         if target_id not in world.characters:

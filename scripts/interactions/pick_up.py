@@ -7,7 +7,7 @@ class PickUp(Interaction):
         self.tool_id = tool_id
 
     def rule(self) -> str:
-        return f"Objects of type '{self.item_id}' can be picked up with '{self.tool_id}'"
+        return f"Objects of type '{self.item_id}' can be picked up with '{self.tool_id}'."
 
     def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
         if target_id not in world.objects or world.objects[target_id].type != self.item_id:
