@@ -67,6 +67,16 @@ class App:
         pygame.display.flip()
 
     def run(self):
+        print()
+        print("Rules:")
+        for type in self.world.object_types.values():
+            if type.interaction is not None:
+                print(type.interaction.rule())
+        print()
+        print("Objects:")
+        for obj_id, obj in self.world.objects.items():
+            print(f"'{obj.type}' with id '{obj_id}'")
+
         last_t = pygame.time.get_ticks()
         while True:
             self.poll_events()
