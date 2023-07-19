@@ -10,6 +10,8 @@ class PickUp(Interaction):
         return f"Objects of type '{self.item_id}' can be picked up with '{self.tool_id}'"
 
     def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
+        if target_id not in world.objects or world.objects[target_id].type != self.item_id:
+            return f"Cannot open '{target_id}' because it is not of type '{self.item_id}'"
         if item_id != self.tool_id:
             return f"'{target_id} can only be picked up with a '{self.tool_id}'"
         if self.tool_id not in world.characters[chr_id].inventory:

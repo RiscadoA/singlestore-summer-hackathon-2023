@@ -1,9 +1,12 @@
 from app import App
-from interactions import Open, PickUp
+from interactions import Open, PickUp, Give
 from world import HumanController, BlankController
 
 def example1() -> App:
     app = App((32, 32))
+
+    # Allow characters to give stuff to each other (but not their hands)
+    app.add_interaction("character", Give({"hand"}))
 
     # Register some object types
     app.add_object_type("door", Open("door", "key"))

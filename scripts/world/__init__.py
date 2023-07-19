@@ -15,6 +15,7 @@ class World:
 
         self.characters: dict[str, Character] = {}
         self.object_types: dict[str, ObjectType] = {}
+        self.interactions: dict[str, Interaction] = dict()
         self.objects: dict[str, Object] = {}
         self.navigator = Navigator(size, self.objects, self.characters)
 
@@ -32,6 +33,12 @@ class World:
         """Adds a new object type to the world"""
         assert type not in self.object_types, f"Object type {type} already exists"
         self.object_types[type] = ObjectType(size, interaction, occlude)
+        if interaction is not None:
+            self.interactions[type] = interaction
+
+    def add_interaction(self, type: str, interaction: Interaction):
+        """Adds a new interaction type to the world"""
+        self.interactions[type] = interaction
 
     def add_object(self, type: str, id: str, position: tuple[int, int]):
         """Adds a new object to the world at the given position"""

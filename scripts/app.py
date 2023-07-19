@@ -21,6 +21,9 @@ class App:
     def __del__(self):
         pygame.quit()
 
+    def add_interaction(self, type: str, interaction: Interaction):
+        self.world.add_interaction(type, interaction)
+
     def add_object_type(self, name: str, interaction: Optional[Interaction] = None, occlude=True):
         _, _, w, h = self.renderer.tile_locator[name]
         self.world.add_object_type(name, (w, h), interaction, occlude)
@@ -69,13 +72,16 @@ class App:
     def run(self):
         print()
         print("Rules:")
-        for type in self.world.object_types.values():
-            if type.interaction is not None:
-                print(type.interaction.rule())
+        for interaction in self.world.interactions.values():
+            print(interaction.rule())
         print()
         print("Objects:")
         for obj_id, obj in self.world.objects.items():
             print(f"'{obj.type}' with id '{obj_id}'")
+        print()
+        print("Characters:")
+        for char_id in self.world.characters.keys():
+            print(f"'{char_id}'")
 
         last_t = pygame.time.get_ticks()
         while True:

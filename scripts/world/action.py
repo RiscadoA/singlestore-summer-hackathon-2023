@@ -86,22 +86,28 @@ class Interact(Action):
             self.error = f"Cannot interact with '{self.target_id}' because you do not have '{self.item_id}'"
             return
         
-        if self.target_id not in self.world.objects:
+        if self.target_id not in self.world.objects and self.target_id not in self.world.characters:
             self.error = f"Cannot interact with '{self.target_id}' because it does not exist"
             return
 
-        self.target = self.world.objects[self.target_id]
+        if self.target_id in self.world.objects:
+            self.target = self.world.objects[self.target_id]
+            self.interaction = self.target.interaction
+        else:
+            self.target = self.world.characters[self.target_id]
+            if "character" in self.world.interactions:
+                self.interaction = self.world.interactions["character"]
+
         dx = self.target.position[0] - self.character.position[0]
         dy = self.target.position[1] - self.character.position[1]
         if dx ** 2 + dy ** 2 > 1:
+            self.interaction = None
             self.error = f"Cannot interact with '{self.target_id}' because it is too far away"
             return
-        
-        if self.target.interaction is None:
+    
+        if self.interaction is None:
             self.error = f"Cannot interact with '{self.target_id}' because it is not interactable"
             return
-
-        self.interaction = self.target.interaction
 
     def tick(self, delta_t: float) -> bool:
         if self.interaction is not None:
