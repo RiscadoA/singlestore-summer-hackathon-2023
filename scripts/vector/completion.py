@@ -25,7 +25,7 @@ class CompletionTools:
                         "parameters": {
                             "type": "object",
                             "properties": {
-                                "object": {
+                                "obj": {
                                     "type": "string",
                                     "description": "the name of the object to move to",
                                 },
