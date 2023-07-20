@@ -38,20 +38,15 @@ class AIController(Controller):
                     plan=self.plan,
                     goal=self.goal,
                     error=error)
-            elif not self.plan:
+            elif self.plan:
+                self.plan.pop(0)
+
+            if not self.plan:
                 self.plan = await self.prompt.reevaluate(
                     context=self.db.query(self.goal),
                     memory=self.memory,
                     plan=self.plan,
                     goal=self.goal)
-            else:
-                self.plan.pop(0)
-                if len(self.plan) == 0:
-                    self.plan = await self.prompt.reevaluate(
-                        context=self.db.query(self.goal),
-                        memory=self.memory,
-                        plan=self.plan,
-                        goal=self.goal)
 
             logging.info(f"'{self.character_id}'s new plan: {self.plan}")
 

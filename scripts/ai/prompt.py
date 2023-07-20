@@ -1,6 +1,7 @@
 import openai
 import json
 
+from typing import Union
 from world import Action, Walk, Interact, Ask
 
 class Prompt():
@@ -100,6 +101,45 @@ class OpenAIPrompt(Prompt):
             out += line.replace("\t", " ").strip() + "\n"
         return out.strip()
     
+    def parse_plan(self, content: str) -> Union[str, list[str]]:
+        plan = []
+        tasks = [line.strip() for line in content.split("\n") if line.strip()]
+        prev = 0
+        for task in tasks:
+            number = task.split(".")[0]
+            if not number.isdigit():
+                print("Failed to parse plan:")
+                print(content)
+                return "Your plan must be a numbered task list."
+            if int(number) != prev + 1:
+                print("Failed to parse plan:")
+                print(content)
+                return "Your plan must be a numbered task list without any gaps or repetitions."
+            prev = int(number)
+            plan += [task.split(".", 1)[1].strip()]
+        return plan
+    
+    def print_plan(self, plan: list[str]) -> str:
+        return "\n".join([f"{i + 1}. {task}" for i, task in enumerate(plan)])
+    
+    async def prompt_plan(self, messages: list) -> list[str]:
+        while True:
+            result = await openai.ChatCompletion.acreate(
+                    model=self.model,
+                    temperature=0.5,
+                    messages=messages,
+                    functions=self.FUNCTIONS)
+            message = result["choices"][0]["message"] # type: ignore
+            messages += [message]
+
+            if "function_call" in message:
+                messages += [{"role": "system", "content": "You must not call any functions, only write a numbered task list."}]
+            else:
+                plan = self.parse_plan(message["content"])
+                if isinstance(plan, list):
+                    return plan
+                messages += [{"role": "system", "content": plan}]
+
     async def plan(self, context: list[str], inventory: set[str], goal: str) -> list[str]:
         newline = "\n"
         prompt = self.sanitize(f'''
@@ -121,20 +161,14 @@ class OpenAIPrompt(Prompt):
             """
         ''')
 
-        result = await openai.ChatCompletion.acreate(
-                model=self.model,
-                temperature=0.5,
-                messages=[{"role": "system", "content": prompt}],
-                functions=self.FUNCTIONS)
-        content = result["choices"][0]["message"]["content"] # type: ignore
+        plan = await self.prompt_plan([{"role": "system", "content": prompt}])
 
         print()
         print(f"-------- OpenAI plan response --------")
-        print(content)
+        print(plan)
         print()
 
-        # TODO: validate plan
-        return [task.strip() for task in content.split("\n")]
+        return plan
 
     async def execute(self, context: list[str], inventory: set[str], plan: list[str]) -> tuple[object, Action]:
         newline = "\n"
@@ -145,7 +179,7 @@ class OpenAIPrompt(Prompt):
             You have an inventory, which contains the following items: {", ".join(inventory)}.
 
             Your current plan is:
-            {newline.join(plan)}
+            {self.print_plan(plan)}
 
             Information about the world (ranked from most to least important):
             """
@@ -215,7 +249,7 @@ class OpenAIPrompt(Prompt):
                 Each task should a single, concise sentence, and be achievable using the functions walk and interact.
 
                 Your current plan is:
-                {newline.join(plan)}
+                {self.print_plan(plan)}
             ''')
 
         prompt += f'''
@@ -226,25 +260,11 @@ class OpenAIPrompt(Prompt):
             """
         '''
 
-        memory += [{"role": "system", "content": prompt}]
-        while True:
-            result = await openai.ChatCompletion.acreate(
-                    model=self.model,
-                    temperature=0.5,
-                    messages=memory,
-                    functions=self.FUNCTIONS)
-            message = result["choices"][0]["message"] # type: ignore
-            memory += [message]
-
-            if "function_call" in message:
-                memory += [{"role": "system", "content": "You must not call any functions, only write a new plan"}]
-            else:
-                break
+        plan = await self.prompt_plan(memory + [{"role": "system", "content": prompt}])
 
         print()
         print(f"-------- OpenAI {what} response --------")
-        print(message["content"])
+        print(self.print_plan(plan))
         print()
 
-        # TODO: validate plan
-        return [task.strip() for task in message["content"].split("\n")]
+        return plan
