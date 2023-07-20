@@ -26,14 +26,14 @@ class AIController(Controller):
             self.just_started = False
 
             self.plan = await self.prompt.plan(
-                context=self.db.query(self.goal),
+                context=await self.db.query(self.goal),
                 inventory=self.character.inventory,
                 goal=self.goal)
             logging.info(f"'{self.character_id}'s initial plan: {self.plan}")
         else:
             if error:
                 self.plan = await self.prompt.reevaluate(
-                    context=self.db.query(self.goal, error),
+                    context=await self.db.query(self.goal, error),
                     memory=self.memory,
                     plan=self.plan,
                     goal=self.goal,
@@ -43,7 +43,7 @@ class AIController(Controller):
 
             if not self.plan:
                 self.plan = await self.prompt.reevaluate(
-                    context=self.db.query(self.goal),
+                    context=await self.db.query(self.goal),
                     memory=self.memory,
                     plan=self.plan,
                     goal=self.goal)
@@ -51,7 +51,7 @@ class AIController(Controller):
             logging.info(f"'{self.character_id}'s new plan: {self.plan}")
 
         self.memory, action = await self.prompt.execute(
-            context=self.db.query(self.plan[0]),
+            context=await self.db.query(self.plan[0]),
             inventory=self.character.inventory,
             plan=self.plan)
         return action

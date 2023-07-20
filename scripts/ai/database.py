@@ -16,7 +16,7 @@ class Database():
         """Fills the database with data from the given world"""
         raise NotImplementedError()
 
-    def query(self, task: str, error: Optional[str] = None) -> list[str]:
+    async def query(self, task: str, error: Optional[str] = None) -> list[str]:
         """Queries context for the given task, optionally with the error message of the previous action if it failed"""
         raise NotImplementedError()
 
@@ -29,7 +29,7 @@ class DumbDatabase(Database):
     def fill(self, world: World):
         self.world = world
 
-    def query(self, task: str, error: Optional[str] = None) -> list[str]:
+    async def query(self, task: str, error: Optional[str] = None) -> list[str]:
         assert self.world is not None, "Database must be filled before querying"
 
         context = []
@@ -60,16 +60,22 @@ class SingleStoreDatabase(Database):
         self._id += 1
         return self._id
 
-    def get_embedding(self, text):
+    async def get_embedding(self, text):
         """Returns the vector for semantic search, using the OpenAI embedding API"""
-        return openai.Embedding.create(input=[text], model=self._model)["data"][0]["embedding"] # type: ignore
+        return (await openai.Embedding.acreate(input=[text], model=self._model))["data"][0]["embedding"] # type: ignore
 
-    def get_embeddings(self, vector):
+    async def get_embeddings(self, vector):
         """get_embedding but mapped to a vector of inputs"""
-        return list(map(self.get_embedding, vector))
+        result = []
+        for text in vector:
+            result.append(await self.get_embedding(text))
+        return result
 
-    def fill(self, world: World):
+    async def fill(self, world: World):
         """Fills the database with data from the given world"""
+
+        print("Filling database...")
+
         context = []
         context += list(map(lambda x: x.rule(), world.interactions.values()))
         context += list(map(lambda id, x: f"There is a '{x.type}' named '{id}'.", world.objects.keys(), world.objects.values()))
@@ -88,19 +94,19 @@ class SingleStoreDatabase(Database):
             cursor.execute("DELETE FROM info;")
 
             query = """INSERT INTO info VALUES """
-            for ctx, vector in zip(context, self.get_embeddings(context)):
+            for ctx, vector in zip(context, await self.get_embeddings(context)):
                 query += f"""({self.new_id()}, "{ctx}", JSON_ARRAY_PACK('{vector}')),"""
             query = query[:-1] + ";"
             cursor.execute(query)
 
         self.filled = True
+        print("Database filled")
 
-
-    def query(self, task: str, error: Optional[str] = None) -> list[str]:
+    async def query(self, task: str, error: Optional[str] = None) -> list[str]:
         """Queries context for the given task, optionally with the error message of the previous action if it failed"""
         assert self.filled, "Database must be filled before querying"
 
-        goal_vector = self.get_embedding(task + ("" if error is None else " " + error))
+        goal_vector = await self.get_embedding(task + ("" if error is None else " " + error))
 
         context_filtered = []
 
