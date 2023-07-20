@@ -47,9 +47,6 @@ class Walk(Action):
         if isinstance(result, str):
             self.error = result
             self.path = []
-        elif len(result) == 1:
-            self.error = f"Already at '{self.target}'"
-            self.path = []
         else:
             self.path = result
 
