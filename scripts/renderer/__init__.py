@@ -81,7 +81,10 @@ class RendererCharacter:
             surface.blit(self.walk[self.character.animated_direction][0], position)
         
         if self.bubble.is_playing():
-            bubble_position = (position[0] + 1, position[1] - self.tile_size[1] * 0.4)
+            offset = 1
+            if self.bubble.animation == self.bubbles["win"]:
+                offset = 0
+            bubble_position = (position[0] + offset, position[1] - self.tile_size[1] * 0.4)
             surface.blit(self.bubble.get_image(), bubble_position)
 
 class Renderer:
