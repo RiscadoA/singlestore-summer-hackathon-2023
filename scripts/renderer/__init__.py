@@ -145,4 +145,4 @@ class Renderer:
             character.render(surface)
 
         if self.console.display:
-            self.font.render(surface, (256, 450), self.console.display)
+            self.font.render(surface, (surface.get_width() // 2, surface.get_height() - 60), self.console.display)

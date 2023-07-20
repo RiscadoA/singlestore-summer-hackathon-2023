@@ -4,7 +4,7 @@ from interactions import Open, PickUp, Give
 from ai import Database, Prompt
 
 def app(db: Database, prompt: Prompt) -> App:
-    app = App((32, 32))
+    app = App((32, 20))
 
     # Allow characters to give stuff to each other (but not their hands)
     app.add_interaction("character", Give({"hand"}))
@@ -38,11 +38,11 @@ def app(db: Database, prompt: Prompt) -> App:
 
     # Add some decorative logs
     app.place_decor("log", (3, 8))
-    app.place_decor("log", (21, 20))
+    app.place_decor("log", (21, 19))
 
     # Add a decorative boulder
     app.place_decor("boulder", (29, 11))
-    app.place_decor("boulder", (7, 18))
+    app.place_decor("boulder", (7, 15))
 
     # Add a key and a goal
     app.add_object("key", "key", (31, 2))
@@ -53,8 +53,8 @@ def app(db: Database, prompt: Prompt) -> App:
     app.add_character("green", ScriptedController([
         Walk("blue"),
         Ask("blue", "Hi"),
-    ]), (12, 21))
-    app.add_character("blue", ScriptedController(), (27, 24))
+    ]), (12, 8))
+    app.add_character("blue", ScriptedController(), (27, 10))
     app.add_character("guy", HumanController(app.console), (0, 2), {"hand"})
 
     return app

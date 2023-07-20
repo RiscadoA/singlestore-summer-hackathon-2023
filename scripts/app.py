@@ -8,6 +8,8 @@ from world import World, Controller, Interaction
 from renderer import Renderer
 from console import Console
 
+SCALE = 2
+
 class App:
     def __init__(self, size: tuple[int, int]):
         self.size = size
@@ -17,7 +19,8 @@ class App:
 
         self.console = Console()
         self.world = World(size)
-        self.screen = pygame.display.set_mode((self.world.size[0] * 16, self.world.size[1] * 16))
+        self.screen = pygame.display.set_mode((self.world.size[0] * 16 * SCALE, self.world.size[1] * 16 * SCALE))
+        self.orig_screen = pygame.Surface((self.world.size[0] * 16, self.world.size[1] * 16))
         self.renderer = Renderer(self.world, self.console)
         self.running = True
 
@@ -68,8 +71,9 @@ class App:
         self.renderer.tick(delta_t)
     
     def render(self):
-        self.screen.fill((0, 0, 0))
-        self.renderer.render(self.screen)
+        self.orig_screen.fill((0, 0, 0))
+        self.renderer.render(self.orig_screen)
+        pygame.transform.scale(self.orig_screen, self.screen.get_size(), self.screen)
         pygame.display.flip()
 
     async def async_run(self):

@@ -3,7 +3,7 @@ from interactions import Win, PickUp, Open, Shop
 from ai import Database, Prompt, AIController
 
 def app(db: Database, prompt: Prompt) -> App:
-    app = App((32, 32))
+    app = App((32, 20))
     flag = [False]
 
     # Register some object types
@@ -25,7 +25,7 @@ def app(db: Database, prompt: Prompt) -> App:
     app.add_object("goal", "goal", (15, 15))
     app.add_object("shrubbery", "shrubbery", (5, 4))
     app.add_object("yellow-box", "yellow-box", (10, 4))
-    app.add_object("green-box", "green-box", (20, 4))
+    app.add_object("green-box", "green-box", (21, 4))
     app.add_character("red", AIController(db, prompt, "Win.", flag), (1, 1), {"hand"})
 
     return app

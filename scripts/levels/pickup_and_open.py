@@ -3,7 +3,7 @@ from interactions import Open, PickUp, Win
 from ai import Database, Prompt, AIController
 
 def app(db: Database, prompt: Prompt) -> App:
-    app = App((32, 32))
+    app = App((32, 20))
     flag = [False]
 
     # Register some object types
@@ -33,7 +33,7 @@ def app(db: Database, prompt: Prompt) -> App:
 
     # Add some decorative logs
     app.place_decor("log", (3, 8))
-    app.place_decor("log", (21, 20))
+    app.place_decor("log", (21, 17))
 
     # Add a decorative boulder
     app.place_decor("boulder", (29, 11))
