@@ -2,7 +2,7 @@ import dotenv
 import levels
 import os
 
-from ai.database import Database, SingleStoreDatabase, DumbDatabase
+from ai.database import SingleStoreDatabase, DumbDatabase
 from ai.prompt import HumanPrompt, OpenAIPrompt
 
 if __name__ == "__main__":
