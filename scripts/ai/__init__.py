@@ -20,7 +20,7 @@ class AIController(Controller):
     async def async_next_action(self, error: str = "") -> Action:
         if self.flag[0]:
             logging.info(f"'{self.character_id}'s goal '{self.goal}' fulfilled!")
-            return Idle()
+            return Idle(win=True)
 
         if self.just_started:
             self.just_started = False

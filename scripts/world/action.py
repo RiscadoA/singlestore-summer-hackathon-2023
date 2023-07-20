@@ -22,9 +22,10 @@ class Action:
 class Idle(Action):
     """An action that does nothing"""
 
-    def __init__(self, finish: bool = False):
+    def __init__(self, finish: bool = False, win: bool = False):
         """If finish is False, the action will never complete"""
         self.finish = finish
+        self.win = win
 
     def tick(self, delta_t: float) -> bool:
         return self.finish

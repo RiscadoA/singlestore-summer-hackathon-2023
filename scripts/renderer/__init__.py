@@ -58,8 +58,11 @@ class RendererCharacter:
             self.show_bubble("ask", 1.0)
         elif isinstance(self.character.action, Answer):
             self.show_bubble("answer", 1.0)
-        elif isinstance(self.character.action, Idle) and self.character.action.finish:
-            self.show_bubble("think", 0.2)
+        elif isinstance(self.character.action, Idle):
+            if self.character.action.finish:
+                self.show_bubble("think", 0.2)
+            elif self.character.action.win:
+                self.show_bubble("win", 1.0)
 
         if self.bubble_timer > 0:
             self.bubble.update(4 * delta_t)
