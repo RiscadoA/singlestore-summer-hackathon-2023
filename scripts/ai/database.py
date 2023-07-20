@@ -116,7 +116,7 @@ class SingleStoreDatabase(Database):
             results = cursor.fetchall()
 
         for row in results:
-            _, filtered, _ = row
+            _, filtered, _ = row # type: ignore
             context_filtered += [
                 filtered,
             ]

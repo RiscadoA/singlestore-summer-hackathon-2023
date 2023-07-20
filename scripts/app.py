@@ -1,5 +1,6 @@
 import pygame
 import logging
+import asyncio
 
 from typing import Optional
 
@@ -71,7 +72,7 @@ class App:
         self.renderer.render(self.screen)
         pygame.display.flip()
 
-    def run(self):
+    async def async_run(self):
         last_t = pygame.time.get_ticks()
         while True:
             self.poll_events()
@@ -84,3 +85,7 @@ class App:
 
             self.tick(delta_t)
             self.render()
+            await asyncio.sleep(0.01)
+
+    def run(self):
+        asyncio.run(self.async_run())

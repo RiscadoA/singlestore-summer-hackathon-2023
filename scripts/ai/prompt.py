@@ -6,18 +6,18 @@ from world import Action, Walk, Interact, Ask
 class Prompt():
     """Interface for the prompt used by the AI"""
 
-    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool = False) -> list[str]:
+    async def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool = False) -> list[str]:
         """Given the context, inventory, task, action and error message, returns a list of new tasks to replace the failed one"""
         raise NotImplementedError()
 
-    def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
+    async def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
         """Given the context, inventory and task, returns the JSON string of the function to execute"""
         raise NotImplementedError()
 
 class HumanPrompt(Prompt):
     """Implementation of the prompt which asks the user for input"""
 
-    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
+    async def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
         print(f"Context: {context}")
         print(f"Inventory: {inventory}")
         print(f"Task: {task}")
@@ -32,7 +32,7 @@ class HumanPrompt(Prompt):
             new_tasks.append(new_task)
         return new_tasks
 
-    def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
+    async def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
         print(f"Context: {context}")
         print(f"Inventory: {inventory}")
         print(f"Task: {task}")
@@ -96,7 +96,7 @@ class OpenAIPrompt(Prompt):
             out += line.replace("\t", " ").strip() + "\n"
         return out.strip()
 
-    def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
+    async def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
         if isinstance(action, Walk):
             action_str = f"walk({action.target})"
         elif isinstance(action, Interact):
@@ -149,12 +149,12 @@ class OpenAIPrompt(Prompt):
         print()
 
         if exhausted:
-            result = openai.ChatCompletion.create(
+            result = await openai.ChatCompletion.acreate(
                 model=self.model,
                 temperature=0.5,
                 messages=[{"role": "system", "content": prompt}])
         else:
-            result = openai.ChatCompletion.create(
+            result = await openai.ChatCompletion.acreate(
                 model=self.model,
                 temperature=0.5,
                 messages=[{"role": "system", "content": prompt}])
@@ -164,11 +164,10 @@ class OpenAIPrompt(Prompt):
         print("-------- OpenAI fix response --------")
         print(result)
         print()
-        input()
 
         return result.split("\n")
 
-    def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
+    async def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
         
         newline = "\n"
         prompt = self.sanitize(f'''
@@ -188,7 +187,7 @@ class OpenAIPrompt(Prompt):
         print(prompt)
         print()
 
-        result = openai.ChatCompletion.create(
+        result = await openai.ChatCompletion.acreate(
             model=self.model,
             temperature=0.0,
             messages=[{"role": "system", "content": prompt}],
@@ -199,7 +198,6 @@ class OpenAIPrompt(Prompt):
         print("-------- OpenAI execute response --------")
         print(result)
         print()
-        input()
 
         if "function_call" not in result:
             raise ValueError(f"OpenAI returned an invalid response without a function call: {result}")
