@@ -12,7 +12,7 @@ class Database():
     - characters.
     """
 
-    def fill(self, world: World):
+    async def fill(self, world: World):
         """Fills the database with data from the given world"""
         raise NotImplementedError()
 
@@ -26,7 +26,7 @@ class DumbDatabase(Database):
     def __init__(self):
         self.world = None
 
-    def fill(self, world: World):
+    async def fill(self, world: World):
         self.world = world
 
     async def query(self, task: str, error: Optional[str] = None) -> list[str]:

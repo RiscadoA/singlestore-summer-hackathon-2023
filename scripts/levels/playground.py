@@ -21,6 +21,9 @@ def app(db: Database, prompt: Prompt) -> App:
     for i in range(18, 32):
         app.place_ground("cliff-m", (i, 3))
     app.add_object("door", "door", (16, 5))
+    app.add_object("green-box", "green-box", (22, 8))
+    app.add_object("red-box", "red-box", (23, 8))
+    app.add_object("yellow-box", "yellow-box", (24, 8))
 
     # Add some decorative trees (not as objects)
     app.place_decor("tree", (0, 0))
