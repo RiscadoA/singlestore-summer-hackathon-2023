@@ -1,11 +1,9 @@
-import json
 import logging
 
 from typing import Optional
 
 from .action import Action, Idle, Walk, Interact, Ask
 from console import Console
-from state import State
 
 class Controller:
     def prepare(self, world, character_id: str):
