@@ -12,19 +12,49 @@ class Database():
     - characters.
     """
 
+    def fill(self, world: World):
+        """Fills the database with data from the given world"""
+        raise NotImplementedError()
+
+    def query(self, task: str, error: Optional[str] = None) -> list[str]:
+        """Queries context for the given task, optionally with the error message of the previous action if it failed"""
+        raise NotImplementedError()
+
+class DumbDatabase(Database):
+    """Dumb database which dumps all of the context to the AI"""
+
     def __init__(self):
         self.world = None
+
+    def fill(self, world: World):
+        self.world = world
+
+    def query(self, task: str, error: Optional[str] = None) -> list[str]:
+        assert self.world is not None, "Database must be filled before querying"
+
+        context = []
+        context += list(map(lambda x: x.rule(), self.world.interactions.values()))
+        context += list(map(lambda id, x: f"There is a '{x.type}' named '{id}'.", self.world.objects.keys(), self.world.objects.values()))
+        #context += list(map(lambda id: f"There is a character named '{id}'.", self.world.characters.keys()))
+        return context
+
+class SingleStoreDatabase(Database):
+    """Database which uses SingleStore as a backend"""
+
+    def __init__(self,
+                 encoding: str,
+                 model: str,
+                 host: str,
+                 port: int,
+                 user: str,
+                 password: str,
+                 database: str):
+        self._encoding = encoding
+        self._model = model
+        self._conn = s2.connect(host=host, port=port, user=user, password=password, database=database)
+
         self.filled = False
         self._id = -1
-        self._encoding = os.getenv("ENCODING_NAME", "cl100k_base")
-        self._model = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
-        self._conn = s2.connect(
-            host=os.getenv("S2_DB_HOST", ""),
-            port=int(os.getenv("S2_DB_PORT", 0)),
-            user=os.getenv("S2_DB_USER", ""),
-            password=os.getenv("S2_DB_PASSWORD", ""),
-            database=os.getenv("S2_DB_DATABASE", ""),
-        )
 
     def new_id(self):
         self._id += 1
@@ -32,7 +62,7 @@ class Database():
 
     def get_embedding(self, text):
         """Returns the vector for semantic search, using the OpenAI embedding API"""
-        return openai.Embedding.create(input=[text], model=self._model)["data"][0]["embedding"]
+        return openai.Embedding.create(input=[text], model=self._model)["data"][0]["embedding"] # type: ignore
 
     def get_embeddings(self, vector):
         """get_embedding but mapped to a vector of inputs"""
@@ -70,7 +100,7 @@ class Database():
         """Queries context for the given task, optionally with the error message of the previous action if it failed"""
         assert self.filled, "Database must be filled before querying"
 
-        goal_vector = self.get_embedding(task)
+        goal_vector = self.get_embedding(task + ("" if error is None else " " + error))
 
         context_filtered = []
 
@@ -91,25 +121,4 @@ class Database():
                 filtered,
             ]
 
-        if error is None:
-            context_filtered.append(self.query(error))
-
         return context_filtered
-
-class DumbDatabase(Database):
-    """Dumb database which dumps all of the context to the AI"""
-
-    def __init__(self):
-        self.world = None
-
-    def fill(self, world: World):
-        self.world = world
-
-    def query(self, task: str, error: Optional[str] = None) -> list[str]:
-        assert self.world is not None, "Database must be filled before querying"
-
-        context = []
-        context += list(map(lambda x: x.rule(), self.world.interactions.values()))
-        context += list(map(lambda id, x: f"There is a '{x.type}' named '{id}'.", self.world.objects.keys(), self.world.objects.values()))
-        #context += list(map(lambda id: f"There is a character named '{id}'.", self.world.characters.keys()))
-        return context

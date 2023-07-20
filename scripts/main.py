@@ -1,9 +1,8 @@
 import dotenv
 import levels
-import openai
 import os
 
-from ai.database import Database, DumbDatabase
+from ai.database import Database, SingleStoreDatabase, DumbDatabase
 from ai.prompt import HumanPrompt, OpenAIPrompt
 
 if __name__ == "__main__":
@@ -13,7 +12,14 @@ if __name__ == "__main__":
     prompt = os.getenv("PROMPT_SOURCE", "openai")
 
     if db == "s2":
-        db = Database()
+        encoding = os.getenv("ENCODING_NAME", "cl100k_base")
+        model = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
+        host = os.getenv("S2_DB_HOST", "")
+        port = int(os.getenv("S2_DB_PORT", 0))
+        user = os.getenv("S2_DB_USER", "")
+        password = os.getenv("S2_DB_PASSWORD", "")
+        database = os.getenv("S2_DB_DATABASE", "")
+        db = SingleStoreDatabase(encoding, model, host, port, user ,password, database)
     elif db == "dumb":
         db = DumbDatabase()
     else:
