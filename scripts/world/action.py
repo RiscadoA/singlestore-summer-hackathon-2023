@@ -36,7 +36,7 @@ class Idle(Action):
 class Walk(Action):
     """An action that moves the character along a given path"""
 
-    SPEED = 10
+    SPEED = 4
 
     def __init__(self, target: str):
         self.target = target

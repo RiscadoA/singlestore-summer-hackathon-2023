@@ -1,9 +1,8 @@
 from app import App
 from world import ScriptedController, HumanController, Walk, Ask
 from interactions import Open, PickUp, Give
-from ai import Database, Prompt
 
-def app(db: Database, prompt: Prompt) -> App:
+def app(db, prompt) -> App:
     app = App((32, 20))
 
     # Allow characters to give stuff to each other (but not their hands)
