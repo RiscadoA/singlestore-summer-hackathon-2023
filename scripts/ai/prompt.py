@@ -117,7 +117,7 @@ class OpenAIPrompt(Prompt):
         for task in tasks:
             number = task.split(".")[0]
             if not number.isdigit():
-                return "Your plan must be a numbered task list."
+                return "Your plan must be a numbered task list without any title or header."
             if int(number) != prev + 1:
                 return "Your plan must be a numbered task list without any gaps or repetitions."
             prev = int(number)
@@ -155,10 +155,13 @@ class OpenAIPrompt(Prompt):
             Each task should a single, concise sentence, and be achievable using the functions walk and interact.
             You have an inventory, which contains the following items: {", ".join(inventory)}.
 
-            Example plan:
-            1. Get Y
-            2. Walk to X
-            3. Interact with X using Y
+            A valid input would be:
+            """
+            1. Walk to Y
+            2. Pick up Y
+            3. Walk to X
+            4. Interact with X using Y
+            """
 
             Information about the world (ranked from most to least important):
             """
@@ -258,6 +261,13 @@ class OpenAIPrompt(Prompt):
             ''')
 
         prompt += f'''
+            A valid input would be:
+            """
+            1. Walk to Y
+            2. Pick up Y
+            3. Walk to X
+            4. Interact with X using Y
+            """
 
             Information about the world (ranked from most to least important):
             """
