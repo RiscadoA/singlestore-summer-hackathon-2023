@@ -133,7 +133,7 @@ class OpenAIPrompt(Prompt):
     
     async def prompt_plan(self, messages: list) -> list[str]:
         while True:
-            result = self.completion_with_backoff(
+            result = await self.completion_with_backoff(
                     model=self.model,
                     temperature=0.5,
                     messages=messages,
@@ -199,7 +199,7 @@ class OpenAIPrompt(Prompt):
         memory = [{"role": "system", "content": prompt}]
 
         while True:
-            result = self.completion_with_backoff(
+            result = await self.completion_with_backoff(
                     model=self.model,
                     temperature=0.5,
                     messages=memory,
