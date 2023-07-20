@@ -8,7 +8,7 @@ class Shop(Interaction):
         self.sell_item = sell_item
 
     def rule(self) -> str:
-        return f"You can obtain a '{self.sell_item}' from a '{self.buy_item}' by interacting with a '{self.where_id}' with a '{self.buy_item}'"
+        return f"By interacting with a '{self.buy_item}' and a '{self.where_id}', you can get a '{self.sell_item}'"
 
     def interact(self, world, chr_id: str, item_id: str, target_id: str) -> str:
         assert self.where_id == target_id

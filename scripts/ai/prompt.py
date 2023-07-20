@@ -184,13 +184,12 @@ class OpenAIPrompt(Prompt):
             You are a character in a world.
             Taking into account the information below about the world, call the function which gets you closer to completing the first task in the plan below.
             Perform the task by calling one of the functions walk and interact exposed to you by the API.
-            You have an inventory, which contains the following items: {", ".join(inventory)}.
-
             Your current plan is:
             {self.print_plan(plan)}
 
             Information about the world (ranked from most to least important):
             """
+            You have an inventory, which contains the following items: {", ".join(inventory)}.
             {newline.join(context)}
             """
         ''')
