@@ -3,9 +3,18 @@ import json
 
 from typing import Union
 from world import Action, Walk, Interact, Ask
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 class Prompt():
     """Interface for the prompt used by the AI"""
+
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    async def completion_with_backoff(self, **kwargs):
+        return await openai.ChatCompletion.acreate(**kwargs)
 
     async def plan(self, context: list[str], inventory: set[str], goal: str) -> list[str]:
         """Given the context, inventory and goal, returns a list of tasks to achieve the goal"""
@@ -124,7 +133,7 @@ class OpenAIPrompt(Prompt):
     
     async def prompt_plan(self, messages: list) -> list[str]:
         while True:
-            result = await openai.ChatCompletion.acreate(
+            result = self.completion_with_backoff(
                     model=self.model,
                     temperature=0.5,
                     messages=messages,
@@ -190,7 +199,7 @@ class OpenAIPrompt(Prompt):
         memory = [{"role": "system", "content": prompt}]
 
         while True:
-            result = await openai.ChatCompletion.acreate(
+            result = self.completion_with_backoff(
                     model=self.model,
                     temperature=0.5,
                     messages=memory,
