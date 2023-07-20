@@ -209,10 +209,13 @@ class OpenAIPrompt(Prompt):
             prompt = self.sanitize(f'''
                 Function succeeded. You have completed the task '{plan[0]}'.
                 Your final goal is '{goal}'.
-                If necessary, reevaluate your plan taking into account the world information above and write the new one below.
-                If you do not wish to reevaluate your plan, write the same plan below.
+                If necessary, reevaluate your plan below taking into account the world information above and write the new one below.
+                Remove only the task that you have already completed.
                 Write a numbered list where each line corresponds to a single task.
                 Each task should a single, concise sentence, and be achievable using the functions walk and interact.
+
+                Your current plan is:
+                {newline.join(plan)}
             ''')
 
         prompt += f'''
@@ -223,17 +226,25 @@ class OpenAIPrompt(Prompt):
             """
         '''
 
-        result = await openai.ChatCompletion.acreate(
-                model=self.model,
-                temperature=0.5,
-                messages=memory + [{"role": "system", "content": prompt}],
-                functions=self.FUNCTIONS)
-        content = result["choices"][0]["message"]["content"] # type: ignore
+        memory += [{"role": "system", "content": prompt}]
+        while True:
+            result = await openai.ChatCompletion.acreate(
+                    model=self.model,
+                    temperature=0.5,
+                    messages=memory,
+                    functions=self.FUNCTIONS)
+            message = result["choices"][0]["message"] # type: ignore
+            memory += [message]
+
+            if "function_call" in message:
+                memory += [{"role": "system", "content": "You must not call any functions, only write a new plan"}]
+            else:
+                break
 
         print()
         print(f"-------- OpenAI {what} response --------")
-        print(content)
+        print(message["content"])
         print()
 
         # TODO: validate plan
-        return [task.strip() for task in content.split("\n")]
+        return [task.strip() for task in message["content"].split("\n")]
