@@ -117,12 +117,8 @@ class OpenAIPrompt(Prompt):
         for task in tasks:
             number = task.split(".")[0]
             if not number.isdigit():
-                print("Failed to parse plan:")
-                print(content)
                 return "Your plan must be a numbered task list."
             if int(number) != prev + 1:
-                print("Failed to parse plan:")
-                print(content)
                 return "Your plan must be a numbered task list without any gaps or repetitions."
             prev = int(number)
             plan += [task.split(".", 1)[1].strip()]
