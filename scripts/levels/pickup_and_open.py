@@ -44,6 +44,6 @@ def app(db: Database, prompt: Prompt) -> App:
     app.add_object("goal", "goal", (15, 10))
 
     # Add an AI character, with a hand
-    app.add_character("red", AIController(db, prompt, "win", flag), (19, 1), {"hand"})
+    app.add_character("red", AIController(db, prompt, "Win.", flag), (19, 1), {"hand"})
 
     return app

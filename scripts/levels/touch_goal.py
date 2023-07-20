@@ -8,6 +8,6 @@ def app(db: Database, prompt: Prompt) -> App:
 
     app.add_object_type("goal", Win("hand", "goal", flag))
     app.add_object("goal", "goal", (15, 15))
-    app.add_character("red", AIController(db, prompt, "win", flag), (5, 5), {"hand"})
+    app.add_character("red", AIController(db, prompt, "Win.", flag), (5, 5), {"hand"})
 
     return app

@@ -6,12 +6,16 @@ from world import Action, Walk, Interact, Ask
 class Prompt():
     """Interface for the prompt used by the AI"""
 
-    async def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool = False) -> list[str]:
-        """Given the context, inventory, task, action and error message, returns a list of new tasks to replace the failed one"""
+    async def plan(self, context: list[str], inventory: set[str], goal: str) -> list[str]:
+        """Given the context, inventory and goal, returns a list of tasks to achieve the goal"""
         raise NotImplementedError()
 
-    async def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
+    async def execute(self, context: list[str], inventory: set[str], plan: list[str]) -> tuple[object, Action]:
         """Given the context, inventory and task, returns the JSON string of the function to execute"""
+        raise NotImplementedError()
+
+    async def reevaluate(self, context: list[str], memory: object, plan: list[str], goal: str, error: str = "") -> list[str]:
+        """Given the memory and error message, returns a list of new tasks"""
         raise NotImplementedError()
 
 class HumanPrompt(Prompt):
@@ -95,118 +99,141 @@ class OpenAIPrompt(Prompt):
         for line in string.split("\n"):
             out += line.replace("\t", " ").strip() + "\n"
         return out.strip()
-
-    async def fix(self, context: list[str], inventory: set[str], task: str, action: Action, error: str, exhausted: bool) -> list[str]:
-        if isinstance(action, Walk):
-            action_str = f"walk({action.target})"
-        elif isinstance(action, Interact):
-            action_str = f"interact({action.item_id}, {action.target_id})"
-        elif isinstance(action, Ask):
-            action_str = f"ask({action.character_id}, {action.question})"
-        else:
-            assert False, f"Unsupported action type {type(action)}"
-
-        if exhausted:
-            goal = f"""
-                Your goal is '{task}'. Decompose the goal into specific actions.
-            """
-        else:
-            goal = f"""
-                Your goal right now is '{task}', which you previously tried to achieve with the action '{action_str}' and
-                failed with the error message '{error}'. Decompose the failed task into smaller tasks or correct it. 
-            """
-
-        newline = "\n"
-        if exhausted:
-            prompt = self.sanitize(f'''
-                You are a character in a world. Decompose the goal '{task}' into one or more specific achievable actions, one per line, without any styling, formatting, numbering or headers.
-                There are two possible questions: walking to a target, or interacting with a target using an item from your inventory.
-                Use the information below to decide which actions to use:
-                
-                Information about the world:
-                """
-                {newline.join(context)}
-                You have an inventory, which contains the following items: {", ".join(inventory)}.
-                """
-            ''')
-        else:
-            prompt = self.sanitize(f'''
-                You are a character in a world. You tried to execute '{task}' but failed with the message '{error}'.
-                Decompose the given goal into specific achievable actions, one per line, without any styling, formatting, numbering or headers.
-                There are two possible questions: walking to a target, or interacting with a target using an item from your inventory.
-                Use the information below to decide which actions to use:
-                
-                Information about the world:
-                """
-                {newline.join(context)}
-                You have an inventory, which contains the following items: {", ".join(inventory)}.
-                """
-            ''')
-
-        print()
-        print("-------- OpenAI fix prompt --------")
-        print(prompt)
-        print()
-
-        if exhausted:
-            result = await openai.ChatCompletion.acreate(
-                model=self.model,
-                temperature=0.5,
-                messages=[{"role": "system", "content": prompt}])
-        else:
-            result = await openai.ChatCompletion.acreate(
-                model=self.model,
-                temperature=0.5,
-                messages=[{"role": "system", "content": prompt}])
-        result = result["choices"][0]["message"]["content"] # type: ignore
-
-        print()
-        print("-------- OpenAI fix response --------")
-        print(result)
-        print()
-
-        return result.split("\n")
-
-    async def execute(self, context: list[str], inventory: set[str], task: str) -> Action:
-        
+    
+    async def plan(self, context: list[str], inventory: set[str], goal: str) -> list[str]:
         newline = "\n"
         prompt = self.sanitize(f'''
-            You are a character in a world. Your goal is '{task}'. Instead of answering with text, you should call
-            only one of the functions walk and interact exposed to you by the API to achieve your goal.
-            Use the information below to decide which function to call:
-            
-            Information about the world:
+            You are a character in a world.
+            Your final goal is '{goal}'.
+            Taking into account the information below about the world, decompose the goal into a plan of one or more specific achievable tasks.
+            Write a numbered list where each line corresponds to a single task.
+            Each task should a single, concise sentence, and be achievable using the functions walk and interact.
+            You have an inventory, which contains the following items: {", ".join(inventory)}.
+
+            Example plan:
+            1. Get Y
+            2. Walk to X
+            3. Interact with X using Y
+
+            Information about the world (ranked from most to least important):
             """
             {newline.join(context)}
-            You have an inventory, which contains the following items: {", ".join(inventory)}.
             """
         ''')
 
-        print()
-        print("-------- OpenAI execute prompt --------")
-        print(prompt)
-        print()
-
         result = await openai.ChatCompletion.acreate(
-            model=self.model,
-            temperature=0.0,
-            messages=[{"role": "system", "content": prompt}],
-            functions=self.FUNCTIONS)
-        result = result["choices"][0]["message"] # type: ignore
+                model=self.model,
+                temperature=0.5,
+                messages=[{"role": "system", "content": prompt}],
+                functions=self.FUNCTIONS)
+        content = result["choices"][0]["message"]["content"] # type: ignore
 
         print()
-        print("-------- OpenAI execute response --------")
-        print(result)
+        print(f"-------- OpenAI plan response --------")
+        print(content)
         print()
 
-        if "function_call" not in result:
-            raise ValueError(f"OpenAI returned an invalid response without a function call: {result}")
+        # TODO: validate plan
+        return [task.strip() for task in content.split("\n")]
 
-        function_call = result["function_call"]
+    async def execute(self, context: list[str], inventory: set[str], plan: list[str]) -> tuple[object, Action]:
+        newline = "\n"
+        prompt = self.sanitize(f'''
+            You are a character in a world.
+            Taking into account the information below about the world, call the function which gets you closer to completing the first task in the plan below.
+            Perform the task by calling one of the functions walk and interact exposed to you by the API.
+            You have an inventory, which contains the following items: {", ".join(inventory)}.
+
+            Your current plan is:
+            {newline.join(plan)}
+
+            Information about the world (ranked from most to least important):
+            """
+            {newline.join(context)}
+            """
+        ''')
+
+        memory = [{"role": "system", "content": prompt}]
+
+        while True:
+            result = await openai.ChatCompletion.acreate(
+                    model=self.model,
+                    temperature=0.5,
+                    messages=memory,
+                    functions=self.FUNCTIONS)
+            message = result["choices"][0]["message"] # type: ignore
+            memory += [message]
+
+            if "function_call" in message:
+                function_call = message["function_call"]
+                if function_call["name"] in ["walk", "interact"]:
+                    break
+
+            memory += [{"role": "system", "content": "You must call either the walk or interact function"}]
+
+        print()
+        print(f"-------- OpenAI execute response --------")
+        print(memory[-1]["function_call"])
+        print()
+
+        memory = [memory[0], memory[-1]]
         arguments = json.loads(function_call["arguments"])
         if function_call["name"] == "walk":
-            return Walk(arguments["target"])
+            return (memory, Walk(arguments["target"]))
         elif function_call["name"] == "interact":
-            return Interact(arguments["item"], arguments["target"])
+            return (memory, Interact(arguments["item"], arguments["target"]))
         else:
-            raise ValueError(f"OpenAI returned an invalid function call: {function_call}")
+            assert False, "bah!"
+
+    async def reevaluate(self, context: list[str], memory: list, plan: list[str], goal: str, error: str = "") -> list[str]:
+        newline = "\n"
+        if error:
+            what = "error"
+            prompt = self.sanitize(f'''
+                Function failed with error: {error}
+                Your final goal is '{goal}'.
+                Reevaluate your plan taking into account the world information above and the error message and write the new one below.
+                Write a numbered list where each line corresponds to a single task.
+                Each task should a single, concise sentence, and be achievable using the functions walk and interact.
+            ''')
+        elif not plan:
+            what = "no plan"
+            prompt = self.sanitize(f'''
+                You have completed your plan but you still haven't achieved your final goal '{goal}'.
+                Reevaluate your plan taking into account the world information above and write the new one below.
+                Write a numbered list where each line corresponds to a single task.
+                Each task should a single, concise sentence, and be achievable using the functions walk and interact.
+            ''')
+        else:
+            what = "success"
+            prompt = self.sanitize(f'''
+                Function succeeded. You have completed the task '{plan[0]}'.
+                Your final goal is '{goal}'.
+                If necessary, reevaluate your plan taking into account the world information above and write the new one below.
+                If you do not wish to reevaluate your plan, write the same plan below.
+                Write a numbered list where each line corresponds to a single task.
+                Each task should a single, concise sentence, and be achievable using the functions walk and interact.
+            ''')
+
+        prompt += f'''
+
+            Information about the world (ranked from most to least important):
+            """
+            {newline.join(context)}
+            """
+        '''
+
+        result = await openai.ChatCompletion.acreate(
+                model=self.model,
+                temperature=0.5,
+                messages=memory + [{"role": "system", "content": prompt}],
+                functions=self.FUNCTIONS)
+        content = result["choices"][0]["message"]["content"] # type: ignore
+
+        print()
+        print(f"-------- OpenAI {what} response --------")
+        print(content)
+        print()
+
+        # TODO: validate plan
+        return [task.strip() for task in content.split("\n")]
