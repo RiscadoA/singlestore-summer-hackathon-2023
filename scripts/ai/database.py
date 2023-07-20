@@ -110,7 +110,7 @@ class SingleStoreDatabase(Database):
                     SELECT id, context, dot_product(vector, JSON_ARRAY_PACK('{goal_vector}')) AS score
                     FROM info
                     ORDER BY score DESC
-                    LIMIT 3;
+                    LIMIT 5;
                 """
             )
             results = cursor.fetchall()
