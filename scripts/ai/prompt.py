@@ -171,8 +171,8 @@ class OpenAIPrompt(Prompt):
         
         newline = "\n"
         prompt = self.sanitize(f'''
-            You are a character in a world. Your goal is '{task}'. Instead of answering with text, you should call the
-            functions walk and interact to achieve your goal.
+            You are a character in a world. Your goal is '{task}'. Instead of answering with text, you should call
+            only one of the functions walk and interact exposed to you by the API to achieve your goal.
             Use the information below to decide which function to call:
             
             Information about the world:
