@@ -6,9 +6,36 @@ employees are free to work on whatever they want - doesn't have to be useful in 
 The theme of this hackathon was AI/ML, so we decided to try to do something with the vector
 database stuff *SingleStore* provides us and also mix in some *OpenAI* shenanigans.
 
-The goal of the project is still not very clear at the moment but we want to make something along
-the lines of "There are multiple AI agents living in a Pokemon-like world, which must collaborate
-to achieve tasks given by the user".
+## Goal
+
+The goal of the project was to make something along the lines of "There are multiple AI agents
+living in a Pokemon-like world, which must collaborate to achieve tasks given by the user".
+
+Unfortunately, due to time constraints, we ended up only implementing AI support for a single
+agent. Turns out prompt engineering is not easy - the agents are quite dumb and sometimes end up
+repeating tasks they have already done, like opening a door they've already opened.
+
+## How
+
+Agents can perform two actions: `walk(target)` and `interact(item, target)`.
+Walking to a target just moves the character next to the given object or character.
+Interact can be used, for example, to open a door using a key.
+
+Agents get feedback from the result of their actions: for example, `walk(goal)` can result in
+`Cannot walk to 'goal' because 'door' is blocking the path`.
+Decisions are performed by querying world information from a vector database (`SingleStore` in this
+case) and including it in prompts.
+
+World information includes rules and state. For example:
+```
+You can open 'door's by interacting with them using 'key'.
+There is a 'door' named 'door 1'.
+```
+
+Agents are controlled with 3 different prompt types:
+- **Planning**: we give it a goal, queried data, current inventory, and ask it to generate a plan to achieve it.
+- **Execute**: we give it the first task from its plan and ask it to execute the right action (walk/interact).
+- **Reevaluate**: when an action fails or the task list is exhausted before the goal is fulfilled, we ask it to generate a new plan considering the previous result and plan.
 
 ## Instructions
 
@@ -24,3 +51,8 @@ scripts/main.py`
 ## Assets
 
 - [ArMM1998's Zelda-like tilesets and sprites](https://opengameart.org/content/zelda-like-tilesets-and-sprites)
+
+## Authors
+
+- [Filipe Silva](https://github.com/filipelsilva)
+- [Ricardo Antunes](https://github.com/riscadoa)
