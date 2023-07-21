@@ -36,6 +36,13 @@ class DumbDatabase(Database):
         context += list(map(lambda x: x.rule(), self.world.interactions.values()))
         context += list(map(lambda id, x: f"There is a '{x.type}' named '{id}'.", self.world.objects.keys(), self.world.objects.values()))
         #context += list(map(lambda id: f"There is a character named '{id}'.", self.world.characters.keys()))
+
+        print()
+        print(f"Context queried from task '{task}' and error {error}")
+        for ctx in context:
+            print(f" - {ctx}")
+        print()
+
         return context
 
 class SingleStoreDatabase(Database):
@@ -126,5 +133,11 @@ class SingleStoreDatabase(Database):
             context_filtered += [
                 filtered,
             ]
+
+        print()
+        print(f"Context queried from task '{task}' and error {error}")
+        for ctx in context_filtered:
+            print(f" - {ctx}")
+        print()
 
         return context_filtered
