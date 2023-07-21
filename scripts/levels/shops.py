@@ -47,9 +47,9 @@ def app(db: Database, prompt: Prompt) -> App:
 
     # Add a key and a goal
     app.add_object("goal", "goal", (15, 13))
-    app.add_object("shrubbery", "shrubbery", (14, 0))
-    app.add_object("yellow-box", "yellow-box", (20, 0))
-    app.add_object("green-box", "green-box", (20, 2))
+    app.add_object("shrubbery", "shrubbery", (14, 1))
+    app.add_object("yellow-box", "yellow-box", (16, 1))
+    app.add_object("green-box", "green-box", (20, 1))
 
     # Add an AI character, with a hand
     app.add_character("red", AIController(db, prompt, "Win.", flag), (19, 3), {"hand"})
